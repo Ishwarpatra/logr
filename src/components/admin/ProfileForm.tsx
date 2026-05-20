@@ -1,83 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { ImageUploader } from "./ImageUploader";
+import { Field, Input, Textarea } from "@/components/ui/Field";
+import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
 import { updateProfileAction } from "@/lib/actions";
 import type { ProfileDTO } from "@/lib/profile";
 
-const field = "mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900";
-const label = "block text-xs font-medium uppercase tracking-wide text-zinc-500";
-
 export function ProfileForm({ profile }: { profile: ProfileDTO }) {
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl ?? "");
-  const [saved, setSaved] = useState(false);
+  const [pending, start] = useTransition();
+  const toast = useToast();
 
   return (
     <form
-      action={async (fd) => {
+      action={(fd) => {
         fd.set("avatarUrl", avatarUrl);
-        await updateProfileAction(fd);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        start(async () => {
+          await updateProfileAction(fd);
+          toast("Profile saved");
+        });
       }}
-      className="space-y-3"
+      className="space-y-5"
     >
-      <h2 className="text-lg font-semibold text-zinc-900">Profile</h2>
+      <Field label="Avatar">
+        <ImageUploader value={avatarUrl ? [avatarUrl] : []} onChange={(u) => setAvatarUrl(u[0] ?? "")} max={1} />
+      </Field>
 
-      <div>
-        <label className={label}>Avatar</label>
-        <div className="mt-1">
-          <ImageUploader value={avatarUrl ? [avatarUrl] : []} onChange={(u) => setAvatarUrl(u[0] ?? "")} max={1} />
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Name">
+          <Input name="name" defaultValue={profile.name} />
+        </Field>
+        <Field label="Handle">
+          <Input name="handle" defaultValue={profile.handle} />
+        </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={label}>Name</label>
-          <input name="name" defaultValue={profile.name} className={field} />
-        </div>
-        <div>
-          <label className={label}>Handle</label>
-          <input name="handle" defaultValue={profile.handle} className={field} />
-        </div>
+      <Field label="Bio">
+        <Textarea name="bio" rows={2} defaultValue={profile.bio} />
+      </Field>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Status">
+          <Input name="status" defaultValue={profile.status} placeholder="Building …" />
+        </Field>
+        <Field label="Location">
+          <Input name="location" defaultValue={profile.location} />
+        </Field>
       </div>
 
-      <div>
-        <label className={label}>Bio</label>
-        <textarea name="bio" rows={2} defaultValue={profile.bio} className={field} />
-      </div>
+      <Field label="About" hint="Use a blank line between paragraphs.">
+        <Textarea name="about" rows={5} defaultValue={profile.about ?? ""} />
+      </Field>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={label}>Status</label>
-          <input name="status" defaultValue={profile.status} className={field} />
-        </div>
-        <div>
-          <label className={label}>Location</label>
-          <input name="location" defaultValue={profile.location} className={field} />
-        </div>
-      </div>
-
-      <div>
-        <label className={label}>About (blank line between paragraphs)</label>
-        <textarea name="about" rows={5} defaultValue={profile.about ?? ""} className={field} />
-      </div>
-
-      <div>
-        <label className={label}>Socials (one per line: “Label https://url”)</label>
-        <textarea
+      <Field label="Socials" hint="One per line: “Label https://url”">
+        <Textarea
           name="socials"
           rows={3}
           defaultValue={profile.socials.map((s) => `${s.label} ${s.href}`).join("\n")}
-          className={field}
         />
-      </div>
+      </Field>
 
-      <div className="flex items-center gap-3">
-        <button className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800">
-          Save profile
-        </button>
-        {saved && <span className="text-sm text-green-600">Saved ✓</span>}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Save profile"}
+        </Button>
       </div>
     </form>
   );

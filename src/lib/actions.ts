@@ -93,6 +93,7 @@ export type HighlightInput = {
   title: string;
   tag: string;
   body: string;
+  icon: string | null;
   linkLabel: string | null;
   linkHref: string | null;
   position: number;
@@ -112,6 +113,7 @@ export async function saveHighlightAction(input: HighlightInput) {
     title: input.title,
     tag: input.tag,
     body: input.body,
+    icon: input.icon,
     linkLabel: input.linkLabel,
     linkHref: input.linkHref,
     position: input.position,
@@ -138,5 +140,28 @@ export async function saveHighlightAction(input: HighlightInput) {
 export async function deleteHighlightAction(id: string) {
   await requireAuth();
   await prisma.highlight.delete({ where: { id } });
+  revalidateAll();
+}
+
+/** Move a highlight one slot earlier ("up", newer) or later ("down") and
+ *  renormalize all positions to be contiguous. */
+export async function moveHighlightAction(id: string, dir: "up" | "down") {
+  await requireAuth();
+  const profile = await prisma.profile.findUniqueOrThrow({
+    where: { username: PRIMARY_USERNAME },
+    select: { id: true },
+  });
+  const items = await prisma.highlight.findMany({
+    where: { profileId: profile.id },
+    orderBy: { position: "asc" },
+    select: { id: true },
+  });
+  const idx = items.findIndex((i) => i.id === id);
+  const swap = dir === "up" ? idx - 1 : idx + 1;
+  if (idx < 0 || swap < 0 || swap >= items.length) return;
+  [items[idx], items[swap]] = [items[swap], items[idx]];
+  await prisma.$transaction(
+    items.map((it, i) => prisma.highlight.update({ where: { id: it.id }, data: { position: i } }))
+  );
   revalidateAll();
 }

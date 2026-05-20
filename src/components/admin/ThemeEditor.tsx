@@ -1,28 +1,30 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Field, Select } from "@/components/ui/Field";
+import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ui/Toast";
 import { updateThemeAction } from "@/lib/actions";
 import {
   PALETTES,
   FONT_PAIRS,
   ACCENT_SWATCHES,
+  resolvePalette,
   type Theme,
   type PostStyle,
   type DotStyle,
   type PhotoHover,
 } from "@/lib/theme";
+import { cn } from "@/lib/cn";
 
 const POST_STYLES: PostStyle[] = ["feed", "card", "centered", "terminal", "polaroid", "magazine"];
 const DOT_STYLES: DotStyle[] = ["circle", "square", "icon"];
 const PHOTO_HOVERS: PhotoHover[] = ["lift", "zoom", "none"];
 
-const field = "mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm capitalize outline-none focus:border-zinc-900";
-const label = "block text-xs font-medium uppercase tracking-wide text-zinc-500";
-
 export function ThemeEditor({ theme }: { theme: Theme }) {
   const [draft, setDraft] = useState<Theme>(theme);
   const [pending, start] = useTransition();
-  const [saved, setSaved] = useState(false);
+  const toast = useToast();
 
   function set<K extends keyof Theme>(k: K, v: Theme[K]) {
     setDraft((d) => ({ ...d, [k]: v }));
@@ -31,87 +33,96 @@ export function ThemeEditor({ theme }: { theme: Theme }) {
   function save() {
     start(async () => {
       await updateThemeAction(draft);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      toast("Theme saved");
     });
   }
 
-  return (
-    <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-zinc-900">Theme</h2>
+  const preview = resolvePalette(draft);
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={label}>Palette</label>
-          <select className={field} value={draft.palette} onChange={(e) => set("palette", e.target.value)}>
+  return (
+    <div className="space-y-5">
+      {/* live palette preview */}
+      <div
+        className="flex items-center justify-between rounded-xl border border-zinc-200 p-4"
+        style={{ background: preview.bg }}
+      >
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-semibold" style={{ color: preview.ink }}>
+            {PALETTES[draft.palette]?.name ?? draft.palette}
+            {draft.dark ? " · dark" : ""}
+          </span>
+          <span className="text-xs" style={{ color: preview.muted }}>
+            {FONT_PAIRS[draft.fonts]?.name} · {draft.postStyle}
+          </span>
+        </div>
+        <div className="flex gap-1.5">
+          {[preview.accent, preview.card, preview.rule, preview.ink].map((c, i) => (
+            <span key={i} className="h-7 w-7 rounded-full border border-black/10" style={{ background: c }} />
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Palette">
+          <Select value={draft.palette} onChange={(e) => set("palette", e.target.value)}>
             {Object.entries(PALETTES).map(([k, p]) => (
               <option key={k} value={k}>{p.name}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className={label}>Font</label>
-          <select className={field} value={draft.fonts} onChange={(e) => set("fonts", e.target.value)}>
+          </Select>
+        </Field>
+        <Field label="Font">
+          <Select value={draft.fonts} onChange={(e) => set("fonts", e.target.value)}>
             {Object.entries(FONT_PAIRS).map(([k, f]) => (
               <option key={k} value={k}>{f.name}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className={label}>Layout</label>
-          <select className={field} value={draft.postStyle} onChange={(e) => set("postStyle", e.target.value as PostStyle)}>
+          </Select>
+        </Field>
+        <Field label="Layout">
+          <Select value={draft.postStyle} onChange={(e) => set("postStyle", e.target.value as PostStyle)}>
             {POST_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={label}>Timeline dot</label>
-          <select className={field} value={draft.dotStyle} onChange={(e) => set("dotStyle", e.target.value as DotStyle)}>
+          </Select>
+        </Field>
+        <Field label="Timeline dot">
+          <Select value={draft.dotStyle} onChange={(e) => set("dotStyle", e.target.value as DotStyle)}>
             {DOT_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={label}>Photo hover</label>
-          <select className={field} value={draft.photoHover} onChange={(e) => set("photoHover", e.target.value as PhotoHover)}>
+          </Select>
+        </Field>
+        <Field label="Photo hover">
+          <Select value={draft.photoHover} onChange={(e) => set("photoHover", e.target.value as PhotoHover)}>
             {PHOTO_HOVERS.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={label}>Accent</label>
-          <div className="mt-1 flex flex-wrap gap-1.5">
+          </Select>
+        </Field>
+        <Field label="Accent">
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {ACCENT_SWATCHES.map((c) => (
               <button
                 key={c}
                 type="button"
                 onClick={() => set("accentOverride", c)}
                 title={c}
-                className={`h-7 w-7 rounded-full border-2 ${draft.accentOverride === c ? "border-zinc-900" : "border-transparent"}`}
+                className={cn(
+                  "h-7 w-7 rounded-full border-2 transition-transform hover:scale-110",
+                  draft.accentOverride === c ? "border-zinc-900" : "border-transparent"
+                )}
                 style={{ background: c }}
               />
             ))}
           </div>
-        </div>
+        </Field>
       </div>
 
-      <div className="flex gap-5">
-        <label className="flex items-center gap-2 text-sm text-zinc-700">
+      <div className="flex flex-wrap items-center gap-5">
+        <label className="flex items-center gap-2 text-sm text-[var(--ink)]">
           <input type="checkbox" checked={draft.rounded} onChange={(e) => set("rounded", e.target.checked)} />
           Rounded corners
         </label>
-        <label className="flex items-center gap-2 text-sm text-zinc-700">
+        <label className="flex items-center gap-2 text-sm text-[var(--ink)]">
           <input type="checkbox" checked={draft.dark} onChange={(e) => set("dark", e.target.checked)} />
           Dark mode
         </label>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button
-          onClick={save}
-          disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-        >
+        <Button className="ml-auto" onClick={save} disabled={pending}>
           {pending ? "Saving…" : "Save theme"}
-        </button>
-        {saved && <span className="text-sm text-green-600">Saved ✓</span>}
+        </Button>
       </div>
     </div>
   );

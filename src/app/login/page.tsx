@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
+import type { CSSProperties } from "react";
 import { loginAction } from "@/lib/actions";
 import { isAuthenticated } from "@/lib/auth";
+import { Field, Input } from "@/components/ui/Field";
+import { Button } from "@/components/ui/Button";
+import { DEFAULT_THEME, themeCssVars } from "@/lib/theme";
 
 export const metadata = { title: "Sign in — logr" };
 
@@ -11,32 +15,30 @@ export default async function LoginPage({
 }) {
   if (await isAuthenticated()) redirect("/admin");
   const { error } = await searchParams;
+  const vars = themeCssVars(DEFAULT_THEME) as CSSProperties;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4">
+    <div
+      style={{ ...vars, fontFamily: "var(--font-body)" }}
+      className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4 text-[var(--ink)]"
+    >
       <form
         action={loginAction}
-        className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm"
+        className="w-full max-w-sm space-y-5 rounded-3xl border border-[var(--rule)] bg-[var(--card)] p-8 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.4)]"
       >
-        <h1 className="text-xl font-semibold text-zinc-900">logr</h1>
-        <p className="mt-1 text-sm text-zinc-500">Sign in to edit your portfolio.</p>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+            logr
+          </h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">Sign in to edit your portfolio.</p>
+        </div>
 
-        <label className="mt-6 block text-sm font-medium text-zinc-700">Password</label>
-        <input
-          type="password"
-          name="password"
-          autoFocus
-          required
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-        />
-        {error && <p className="mt-2 text-sm text-red-600">Incorrect password.</p>}
+        <Field label="Password">
+          <Input type="password" name="password" autoFocus required />
+        </Field>
+        {error && <p className="-mt-2 text-sm text-red-600">Incorrect password.</p>}
 
-        <button
-          type="submit"
-          className="mt-5 w-full rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-        >
-          Sign in
-        </button>
+        <Button type="submit" variant="accent" className="w-full">Sign in</Button>
       </form>
     </div>
   );
