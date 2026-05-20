@@ -1,0 +1,70 @@
+// logr — Postgres (Supabase) schema.
+// JSON-shaped fields (socials, theme, link) are stored as serialized strings.
+// Phase 3 adds pgvector for the chat RAG index.
+//
+// Supabase needs two connection strings:
+//   DATABASE_URL — pooled (PgBouncer, :6543, ?pgbouncer=true) for the app at runtime
+//   DIRECT_URL   — direct (:5432) for `prisma migrate`, which PgBouncer can't run
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  name      String
+  handle    String
+  bio       String
+  status    String // current "building X" line
+  location  String
+  about     String? // longer-form prose for the "A little more" section
+  avatarUrl String?
+  socials   String // JSON: [{ label, href }]
+  theme     String // JSON: { palette, fonts, rounded, accentOverride, postStyle, dotStyle, photoHover, dark }
+
+  highlights Highlight[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Highlight {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  date  String // display string, e.g. "Nov 2025" or "2014 — 2016"
+  year  Int // for year grouping
+  title String
+  tag   String // work | milestone | talk | side_quest | writing
+  body  String
+
+  linkLabel String?
+  linkHref  String?
+
+  position Int // explicit ordering (reverse-chronological)
+
+  images Image[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId, position])
+}
+
+model Image {
+  id          String    @id @default(cuid())
+  highlightId String
+  highlight   Highlight @relation(fields: [highlightId], references: [id], onDelete: Cascade)
+  url         String? // null = empty placeholder slot
+  position    Int
+
+  @@index([highlightId, position])
+}
