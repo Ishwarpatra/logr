@@ -672,15 +672,9 @@ strong { font-weight: 600; }
 }
 .kbd-hint--hidden { opacity: 0; transform: translateX(-50%) translateY(8px); }
 
-/* ---------- entrance ---------- */
-.post { opacity: 0; transform: translateY(6px); animation: rise 480ms ease forwards; }
-.post:nth-of-type(1) { animation-delay: 0ms; }
-.post:nth-of-type(2) { animation-delay: 40ms; }
-.post:nth-of-type(3) { animation-delay: 80ms; }
-.post:nth-of-type(4) { animation-delay: 120ms; }
-.post:nth-of-type(5) { animation-delay: 160ms; }
-.post:nth-of-type(n+6) { animation-delay: 200ms; }
-@keyframes rise { to { opacity: 1; transform: translateY(0); } }
+/* ---------- entrance ----------
+   Scroll-in entrance is handled by Framer Motion (see Portfolio.tsx) so it
+   triggers as posts enter the viewport, not just on initial load. */
 
 /* small screens */
 @media (max-width: 540px) {
@@ -997,4 +991,97 @@ strong { font-weight: 600; }
   font-size: 12px;
   letter-spacing: 0.02em;
   user-select: none;
+}
+
+/* ---------- HIGHLIGHT ICON (beside the title) ---------- */
+.post__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0;
+}
+.post__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* matches the default .post__title size, so the icon scales with it */
+  font-size: clamp(18px, 1.8vw, 21px);
+  line-height: 1;
+}
+.post__icon--emoji { font-size: 2em; } /* logo-sized, well above the title */
+.post__icon img {
+  display: block;
+  height: 2.3em; /* ~48px against the default title — like a company logo */
+  width: auto;
+  max-width: 3.6em;
+  object-fit: contain;
+  border-radius: 9px;
+}
+.post__heading .post__title { margin: 0; }
+/* layouts whose titles differ in size — keep the icon proportional */
+[data-post-style="magazine"] .post__icon { font-size: clamp(28px, 3.4vw, 42px); }
+[data-post-style="terminal"] .post__icon { font-size: 17px; }
+[data-post-style="polaroid"] .post__icon { font-size: 16.5px; }
+/* in the centered layout, left-aligned cards should keep the icon before the title */
+[data-post-style="centered"] .post--side-left .post__heading { flex-direction: row-reverse; }
+
+/* ---------- LIGHTBOX (full-screen image viewer) ---------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(8, 8, 12, 0.92);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.lightbox__img {
+  max-width: min(92vw, 1200px);
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.6);
+}
+.lightbox__btn {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: background 160ms ease;
+}
+.lightbox__btn:hover { background: rgba(255, 255, 255, 0.22); }
+.lightbox__close { top: 18px; right: 18px; }
+.lightbox__nav--prev { left: 18px; top: 50%; transform: translateY(-50%); }
+.lightbox__nav--next { right: 18px; top: 50%; transform: translateY(-50%); }
+.lightbox__count {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+@media (max-width: 540px) {
+  .lightbox__nav--prev { left: 10px; }
+  .lightbox__nav--next { right: 10px; }
 }

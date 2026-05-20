@@ -10,7 +10,9 @@ import {
   Fragment,
   type ReactNode,
 } from "react";
+import { motion, AnimatePresence, MotionConfig, type Variants } from "framer-motion";
 import type { ProfileDTO, HighlightDTO, Social } from "@/lib/profile";
+import { Lightbox } from "@/components/ui/Lightbox";
 import {
   TAG_META,
   themeCssVars,
@@ -18,6 +20,15 @@ import {
   type PostStyle,
   type DotStyle,
 } from "@/lib/theme";
+import { isImageIcon } from "@/lib/icon";
+
+// Shared motion config — easing mirrors the design's cubic-bezier(.2,.8,.2,1).
+const EASE: [number, number, number, number] = [0.2, 0.8, 0.2, 1];
+const riseIn: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+};
+const VIEWPORT = { once: true, amount: 0.25, margin: "0px 0px -8% 0px" } as const;
 
 const SOCIAL_ICONS: Record<string, ReactNode> = {
   X: (
@@ -38,8 +49,9 @@ const SOCIAL_ICONS: Record<string, ReactNode> = {
 };
 
 // ---------- PHOTO GRID ----------
-function PhotoGrid({ images, rounded }: { images: (string | null)[]; rounded: boolean }) {
+function PhotoGrid({ images, rounded }: { images: string[]; rounded: boolean }) {
   const count = images.length;
+  const [viewer, setViewer] = useState<number | null>(null);
   let gridStyle: React.CSSProperties;
   if (count === 1) {
     gridStyle = { gridTemplateColumns: "1fr", aspectRatio: "16 / 10" };
@@ -53,21 +65,38 @@ function PhotoGrid({ images, rounded }: { images: (string | null)[]; rounded: bo
     };
   }
   return (
-    <div
-      className={`photo-grid ${rounded ? "photo-grid--rounded" : ""}`}
-      style={{ display: "grid", gap: 6, ...gridStyle }}
-    >
-      {images.map((url, i) =>
-        url ? (
+    <>
+      <div
+        className={`photo-grid ${rounded ? "photo-grid--rounded" : ""}`}
+        style={{ display: "grid", gap: 6, ...gridStyle }}
+      >
+        {images.map((url, i) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={i} className="photo-slot" src={url} alt="" />
-        ) : (
-          <span key={i} className="photo-slot photo-slot--empty" aria-hidden="true">
-            {count === 1 ? "Drop a photo" : i + 1}
-          </span>
-        )
-      )}
-    </div>
+          <img
+            key={i}
+            className="photo-slot"
+            src={url}
+            alt=""
+            role="button"
+            tabIndex={0}
+            aria-label="View image"
+            style={{ cursor: "zoom-in" }}
+            onClick={() => setViewer(i)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setViewer(i);
+              }
+            }}
+          />
+        ))}
+      </div>
+      <AnimatePresence>
+        {viewer !== null && (
+          <Lightbox images={images} startIndex={viewer} onClose={() => setViewer(null)} />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -100,10 +129,14 @@ function Post({
 }) {
   const tag = TAG_META[h.tag] || { label: h.tag };
   return (
-    <article
+    <motion.article
       className={`post post--side-${side} ${isFocused ? "is-focused" : ""}`}
       data-tag={h.tag}
       id={`entry-${h.id}`}
+      variants={riseIn}
+      initial="hidden"
+      whileInView="show"
+      viewport={VIEWPORT}
     >
       <div
         className={`post__rail ${isFirst ? "is-first" : ""} ${isLast ? "is-last" : ""}`}
@@ -118,7 +151,20 @@ function Post({
           <span className="post__sep">·</span>
           <span className="post__tag">{tag.label}</span>
         </div>
-        <h2 className="post__title">{h.title}</h2>
+        <div className="post__heading">
+          {h.icon &&
+            (isImageIcon(h.icon) ? (
+              <span className="post__icon">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={h.icon} alt="" />
+              </span>
+            ) : (
+              <span className="post__icon post__icon--emoji" aria-hidden="true">
+                {h.icon}
+              </span>
+            ))}
+          <h2 className="post__title">{h.title}</h2>
+        </div>
         <p className="post__body">{h.body}</p>
         {h.images.length > 0 && (
           <div className="post__photos">
@@ -134,7 +180,7 @@ function Post({
           </a>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }
 
@@ -142,14 +188,33 @@ function Post({
 function ProfileHeader({ profile }: { profile: ProfileDTO }) {
   const bioLines = profile.bio.split("\n");
   return (
-    <header className="profile">
+    <motion.header
+      className="profile"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: EASE }}
+    >
       <div className="profile__avatar">
         {profile.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={profile.avatarUrl} alt={profile.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
-          <span className="photo-slot photo-slot--empty" style={{ borderRadius: "50%" }} aria-hidden="true">
-            Drop avatar
+          <span
+            aria-hidden="true"
+            style={{
+              display: "flex",
+              width: "100%",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              fontFamily: "var(--font-display)",
+              fontWeight: 600,
+              fontSize: 40,
+              color: "var(--muted)",
+              background: "var(--card-hover)",
+            }}
+          >
+            {profile.name.trim().charAt(0).toUpperCase()}
           </span>
         )}
       </div>
@@ -181,18 +246,25 @@ function ProfileHeader({ profile }: { profile: ProfileDTO }) {
           ))}
         </nav>
       </div>
-    </header>
+    </motion.header>
   );
 }
 
 // ---------- YEAR CHIP ----------
 function YearChip({ year }: { year: number }) {
   return (
-    <div className="year-chip" id={`year-${year}`}>
+    <motion.div
+      className="year-chip"
+      id={`year-${year}`}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={VIEWPORT}
+      transition={{ duration: 0.4, ease: EASE }}
+    >
       <span className="year-chip__line" />
       <span className="year-chip__pill">{year}</span>
       <span className="year-chip__line" />
-    </div>
+    </motion.div>
   );
 }
 
@@ -524,7 +596,8 @@ export default function Portfolio({ profile }: { profile: ProfileDTO }) {
 
   let postIdx = 0;
   return (
-    <div data-post-style={theme.postStyle} data-photo-hover={theme.photoHover}>
+    <MotionConfig reducedMotion="user">
+      <div data-post-style={theme.postStyle} data-photo-hover={theme.photoHover}>
       <div className="page">
         <ProfileHeader profile={profile} />
 
@@ -558,6 +631,7 @@ export default function Portfolio({ profile }: { profile: ProfileDTO }) {
 
       <Footer profile={profile} />
       <KeyboardHint />
-    </div>
+      </div>
+    </MotionConfig>
   );
 }
