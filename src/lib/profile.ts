@@ -10,8 +10,9 @@ export type HighlightDTO = {
   title: string;
   tag: string;
   body: string;
+  icon: string | null; // optional glyph/emoji for the timeline dot
   link: { label: string; href: string } | null;
-  images: (string | null)[]; // ordered; null = empty placeholder slot
+  images: string[]; // real image URLs only (empty placeholder slots dropped)
 };
 
 export type ProfileDTO = {
@@ -66,8 +67,9 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
       title: h.title,
       tag: h.tag,
       body: h.body,
+      icon: h.icon,
       link: h.linkHref ? { label: h.linkLabel ?? h.linkHref, href: h.linkHref } : null,
-      images: h.images.map((img) => img.url),
+      images: h.images.map((img) => img.url).filter((u): u is string => !!u),
     })),
   };
 }

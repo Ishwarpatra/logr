@@ -45,6 +45,7 @@ model Highlight {
   title String
   tag   String // work | milestone | talk | side_quest | writing
   body  String
+  icon  String? // optional glyph/emoji shown on the timeline dot
 
   linkLabel String?
   linkHref  String?
