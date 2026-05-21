@@ -165,3 +165,12 @@ export async function moveHighlightAction(id: string, dir: "up" | "down") {
   );
   revalidateAll();
 }
+
+/** Persist a full drag-reordered list: position = index in `orderedIds`. */
+export async function reorderHighlightsAction(orderedIds: string[]) {
+  await requireAuth();
+  await prisma.$transaction(
+    orderedIds.map((id, i) => prisma.highlight.update({ where: { id }, data: { position: i } }))
+  );
+  revalidateAll();
+}

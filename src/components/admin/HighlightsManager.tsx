@@ -2,11 +2,12 @@
 
 import { useState, useRef, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Reorder, useDragControls } from "framer-motion";
 import { useToast } from "@/components/ui/Toast";
 import {
   saveHighlightAction,
   deleteHighlightAction,
-  moveHighlightAction,
+  reorderHighlightsAction,
   type HighlightInput,
 } from "@/lib/actions";
 import { TAG_META } from "@/lib/theme";
@@ -172,6 +173,65 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
 }
 
 // ---------- LIST ----------
+// ---------- DRAGGABLE ROW ----------
+function HighlightRow({
+  h,
+  onEdit,
+  onDelete,
+  onCommit,
+}: {
+  h: EditableHighlight;
+  onEdit: () => void;
+  onDelete: () => void;
+  onCommit: () => void;
+}) {
+  const controls = useDragControls();
+  const accent = h.tag === "milestone";
+  return (
+    <Reorder.Item
+      value={h}
+      as="div"
+      className="hl-row"
+      dragListener={false}
+      dragControls={controls}
+      onDragEnd={onCommit}
+      whileDrag={{ scale: 1.01, backgroundColor: "var(--paper)", borderRadius: 10, boxShadow: "0 16px 40px -14px rgba(0,0,0,0.4)", zIndex: 5 }}
+    >
+      <button
+        type="button"
+        className="hl-row__handle"
+        aria-label="drag to reorder"
+        onPointerDown={(e) => controls.start(e)}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <circle cx="6" cy="3" r="1.3" /><circle cx="10" cy="3" r="1.3" /><circle cx="6" cy="8" r="1.3" /><circle cx="10" cy="8" r="1.3" /><circle cx="6" cy="13" r="1.3" /><circle cx="10" cy="13" r="1.3" />
+        </svg>
+      </button>
+      <div className={`hl-row__thumb ${accent ? "hl-row__thumb--accent" : ""}`}>
+        {h.images[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={h.images[0]} alt="" />
+        ) : isImageIcon(h.icon) ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={h.icon} alt="" />
+        ) : (h.icon || letter(h.title))}
+      </div>
+      <div className="hl-row__copy">
+        <span className="hl-row__title">{h.title}</span>
+        <span className="hl-row__meta">
+          {h.date} · <span className={accent ? "accent" : undefined}>{TAG_META[h.tag]?.label ?? h.tag}</span>
+          {h.images.length > 0 && ` · ${h.images.length} photo${h.images.length > 1 ? "s" : ""}`}
+          {h.linkLabel && ` · ${h.linkLabel}`}
+        </span>
+      </div>
+      <div className="hl-row__actions">
+        <button onClick={onEdit}>edit</button>
+        <button className="danger" onClick={onDelete}>delete</button>
+      </div>
+    </Reorder.Item>
+  );
+}
+
 export function HighlightsManager({ highlights }: { highlights: EditableHighlight[] }) {
   const router = useRouter();
   const toast = useToast();
@@ -179,10 +239,23 @@ export function HighlightsManager({ highlights }: { highlights: EditableHighligh
   const [confirmDelete, setConfirmDelete] = useState<EditableHighlight | null>(null);
   const [pending, start] = useTransition();
 
-  const nextPosition = highlights.length ? Math.min(...highlights.map((h) => h.position)) - 1 : 0;
+  // Local order for drag-and-drop; resynced from props when the set/order changes.
+  const [items, setItems] = useState(highlights);
+  const sig = highlights.map((h) => h.id).join(",");
+  const [prevSig, setPrevSig] = useState(sig);
+  if (sig !== prevSig) {
+    setPrevSig(sig);
+    setItems(highlights);
+  }
 
-  function move(id: string, dir: "up" | "down") {
-    start(async () => { await moveHighlightAction(id, dir); router.refresh(); });
+  const nextPosition = items.length ? Math.min(...items.map((h) => h.position)) - 1 : 0;
+
+  function commitOrder() {
+    const order = items.map((i) => i.id);
+    start(async () => {
+      await reorderHighlightsAction(order);
+      toast("Order saved");
+    });
   }
   function doDelete(h: EditableHighlight) {
     start(async () => { await deleteHighlightAction(h.id); setConfirmDelete(null); toast("Highlight deleted"); router.refresh(); });
@@ -192,44 +265,21 @@ export function HighlightsManager({ highlights }: { highlights: EditableHighligh
     <section role="tabpanel">
       <div className="card">
         <div className="hl-head">
-          <span className="hl-count"><span className="accent">{highlights.length}</span> highlights · newest first</span>
+          <span className="hl-count"><span className="accent">{items.length}</span> highlights · drag to reorder</span>
           <button type="button" className="btn btn--small" onClick={() => setDialog(emptyDraft(nextPosition))}>+ add highlight</button>
         </div>
 
-        <div className="hl-list">
-          {highlights.map((h, i) => {
-            const accent = h.tag === "milestone";
-            return (
-              <div className="hl-row" key={h.id}>
-                <div className="hl-row__order">
-                  <button aria-label="move up" disabled={i === 0 || pending} onClick={() => move(h.id, "up")}>▲</button>
-                  <button aria-label="move down" disabled={i === highlights.length - 1 || pending} onClick={() => move(h.id, "down")}>▼</button>
-                </div>
-                <div className={`hl-row__thumb ${accent ? "hl-row__thumb--accent" : ""}`}>
-                  {h.images[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={h.images[0]} alt="" />
-                  ) : isImageIcon(h.icon) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={h.icon} alt="" />
-                  ) : (h.icon || letter(h.title))}
-                </div>
-                <div className="hl-row__copy">
-                  <span className="hl-row__title">{h.title}</span>
-                  <span className="hl-row__meta">
-                    {h.date} · <span className={accent ? "accent" : undefined}>{TAG_META[h.tag]?.label ?? h.tag}</span>
-                    {h.images.length > 0 && ` · ${h.images.length} photo${h.images.length > 1 ? "s" : ""}`}
-                    {h.linkLabel && ` · ${h.linkLabel}`}
-                  </span>
-                </div>
-                <div className="hl-row__actions">
-                  <button onClick={() => setDialog(toDraft(h))}>edit</button>
-                  <button className="danger" onClick={() => setConfirmDelete(h)}>delete</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <Reorder.Group as="div" axis="y" values={items} onReorder={setItems} className="hl-list">
+          {items.map((h) => (
+            <HighlightRow
+              key={h.id}
+              h={h}
+              onEdit={() => setDialog(toDraft(h))}
+              onDelete={() => setConfirmDelete(h)}
+              onCommit={commitOrder}
+            />
+          ))}
+        </Reorder.Group>
       </div>
 
       {dialog && (

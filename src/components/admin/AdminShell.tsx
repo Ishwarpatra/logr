@@ -14,8 +14,8 @@ import type { ProfileDTO } from "@/lib/profile";
 
 const TABS = [
   { value: "profile", glyph: "01", label: "profile" },
-  { value: "appearance", glyph: "02", label: "appearance" },
-  { value: "highlights", glyph: "03", label: "highlights" },
+  { value: "highlights", glyph: "02", label: "highlights" },
+  { value: "appearance", glyph: "03", label: "appearance" },
 ];
 
 function initial(name: string) {
