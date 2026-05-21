@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>logr — log your life.</title>
+<meta name="description" content="a portfolio for humans and the machines they raise. one timeline, kept once.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   logr.life — landing
+   ============================================================ */
+
+:root {
+  --paper:  #FAF8F3;
+  --ink:    #1A1A1A;
+  --accent: #D85A30;
+  --muted:  #6B6862;
+  --faint:  #95918A;
+  --rule:   rgba(26, 26, 26, 0.12);
+  --rule-strong: rgba(26, 26, 26, 0.28);
+
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  --mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  --user-accent: var(--accent);
+}
+
+html[data-mode="dark"] {
+  --paper: #1A1814;
+  --ink:   #F2EFE8;
+  --muted: #8E8A82;
+  --faint: #5F5C56;
+  --rule:  rgba(242, 239, 232, 0.14);
+  --rule-strong: rgba(242, 239, 232, 0.30);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 17.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 280ms ease, color 280ms ease;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; padding: 0; }
+p { margin: 0; text-wrap: pretty; }
+h1, h2, h3, h4 { margin: 0; font-weight: 400; }
+em { font-style: italic; color: inherit; }
+
+::selection { background: var(--user-accent); color: #fff; }
+
+/* ============ LAYOUT ============ */
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 40px 32px 96px;
+}
+
+/* ============ TOP BAR ============ */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.bar__brand {
+  font-family: var(--serif);
+  font-size: 22px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--ink);
+}
+.bar__brand .colon { color: var(--user-accent); }
+.bar__util {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+.bar__util a {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  padding-bottom: 2px;
+  border-bottom: 0.5px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+  white-space: nowrap;
+}
+.bar__util a:hover { color: var(--ink); border-color: var(--ink); }
+.bar__util .cta {
+  color: var(--user-accent);
+  border-bottom: 0.5px solid var(--rule-strong);
+}
+.bar__util .cta:hover { color: var(--user-accent); border-color: var(--user-accent); }
+
+/* ============ HERO ============ */
+.hero {
+  padding: 96px 0 80px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.hero__wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--serif);
+  font-size: clamp(96px, 18vw, 220px);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+}
+.hero__wordmark .colon {
+  color: var(--user-accent);
+  margin-left: 0.02em;
+}
+.hero__lede {
+  margin-top: 36px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(22px, 2.6vw, 32px);
+  line-height: 1.3;
+  color: var(--ink);
+  max-width: 26ch;
+}
+.hero__sub {
+  margin-top: 28px;
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 52ch;
+}
+.hero__cta {
+  margin-top: 48px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.handle-input {
+  display: inline-flex;
+  align-items: baseline;
+  border-bottom: 0.5px solid var(--ink);
+  padding: 6px 0;
+  font-family: var(--serif);
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  min-width: 280px;
+}
+.handle-input__prefix {
+  color: var(--muted);
+}
+.handle-input__prefix .accent { color: var(--user-accent); }
+.handle-input input {
+  font: inherit;
+  font-family: var(--serif);
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  padding: 0 0 0 2px;
+  width: 100%;
+  outline: none;
+}
+.handle-input input::placeholder { color: var(--faint); font-style: italic; }
+.hero__claim {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  background: var(--user-accent);
+  color: var(--paper);
+  padding: 10px 18px;
+  border: 0.5px solid var(--user-accent);
+  transition: opacity 160ms ease;
+}
+.hero__claim:hover { opacity: 0.88; }
+.hero__or {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.hero__see {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--user-accent);
+  letter-spacing: 0.05em;
+  border-bottom: 0.5px solid var(--rule-strong);
+  padding-bottom: 2px;
+  transition: border-color 160ms ease;
+}
+.hero__see:hover { border-color: var(--user-accent); }
+
+/* ============ SECTION SHELL ============ */
+.section {
+  padding: 96px 0;
+  border-bottom: 0.5px solid var(--rule);
+}
+.section__head {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 48px;
+  margin-bottom: 56px;
+}
+.section__num {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.section__title {
+  font-family: var(--serif);
+  font-size: clamp(30px, 3.8vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  max-width: 20ch;
+}
+.section__title .colon { color: var(--user-accent); }
+.section__sub {
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 56ch;
+  line-height: 1.4;
+}
+@media (max-width: 720px) {
+  .section__head { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* ============ THESIS ============ */
+.thesis-stack {
+  display: grid;
+  gap: 28px;
+}
+.thesis-stack p {
+  font-family: var(--serif);
+  font-size: clamp(20px, 2.2vw, 26px);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  max-width: 32ch;
+  color: var(--ink);
+}
+.thesis-stack p:nth-child(2) { margin-left: 8%; color: var(--muted); }
+.thesis-stack p:nth-child(3) { margin-left: 16%; color: var(--user-accent); font-style: italic; }
+.thesis-stack p em { font-style: italic; }
+
+/* ============ DUAL READER ============ */
+.dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 0.5px solid var(--rule);
+}
+.dual__col {
+  padding: 36px 32px 40px;
+  position: relative;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dual__col:first-child { border-right: 0.5px solid var(--rule); }
+.dual__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  border-bottom: 0.5px solid var(--rule);
+  padding-bottom: 14px;
+  margin-bottom: 8px;
+}
+.dual__head .accent { color: var(--user-accent); }
+
+/* human side */
+.dual__entry { margin-bottom: 4px; }
+.dual__entry__date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.dual__entry__title {
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.32;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.dual__entry__body {
+  font-family: var(--serif);
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* machine side */
+.dual__ai {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--muted);
+  white-space: pre-wrap;
+  letter-spacing: 0.02em;
+  margin: 0;
+  flex: 1;
+}
+.dual__ai .k { color: var(--ink); }
+.dual__ai .v { color: var(--muted); }
+.dual__ai .accent { color: var(--user-accent); }
+.dual__ai .hash  { color: var(--faint); }
+
+.dual__legend {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+.dual__legend > div {
+  border-left: 0.5px solid var(--rule);
+  padding-left: 12px;
+}
+@media (max-width: 720px) {
+  .dual { grid-template-columns: 1fr; }
+  .dual__col:first-child { border-right: 0; border-bottom: 0.5px solid var(--rule); }
+  .dual__legend { grid-template-columns: 1fr; }
+}
+
+/* ============ FLOW (steps) ============ */
+.flow {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 0.5px solid var(--rule);
+}
+.step {
+  display: grid;
+  grid-template-columns: 80px 1fr 1.2fr;
+  gap: 32px;
+  padding: 40px 0;
+  border-bottom: 0.5px solid var(--rule);
+  align-items: start;
+}
+.step:last-child { border-bottom: 0; }
+.step__num {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: var(--user-accent);
+  padding-top: 6px;
+}
+.step__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.step__title {
+  font-family: var(--serif);
+  font-size: 24px;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+.step__body {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 42ch;
+}
+.step__demo {
+  border: 0.5px solid var(--rule);
+  padding: 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 140px;
+  justify-content: center;
+}
+.step__demo--input {
+  align-items: stretch;
+}
+
+/* ============ HELLO (founder intro) ============ */
+.hello {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 0 22px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.hello__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 0.5px solid var(--rule-strong);
+  flex-shrink: 0;
+  background: var(--paper);
+}
+.hello__avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hello__copy {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 60ch;
+  text-wrap: pretty;
+}
+.hello__copy .hi {
+  font-style: normal;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.hello__copy a {
+  color: var(--user-accent);
+  border-bottom: 0.5px solid var(--rule-strong);
+  padding-bottom: 1px;
+  font-style: normal;
+}
+.hello__copy a:hover { border-color: var(--user-accent); }
+@media (max-width: 540px) {
+  .hello { gap: 12px; padding: 20px 0 18px; }
+  .hello__avatar { width: 40px; height: 40px; }
+  .hello__copy { font-size: 14.5px; }
+}
+
+/* ============ PREVIEW WINDOW (reusable mockup chrome) ============ */
+.preview-window {
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 0.5px solid var(--rule-strong);
+  overflow: hidden;
+  font-family: var(--serif);
+}
+.preview-window__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 0.5px solid var(--rule);
+  background: rgba(0, 0, 0, 0.025);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.preview-window__dots {
+  display: inline-flex;
+  gap: 4px;
+}
+.preview-window__dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rule-strong);
+  display: inline-block;
+}
+.preview-window__bar .url { color: var(--muted); }
+.preview-window__bar .url .accent { color: var(--user-accent); }
+.preview-window__body {
+  padding: 22px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 160px;
+}
+
+/* preview content moods */
+.pw-handle {
+  font-family: var(--serif);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+.pw-handle .prefix { color: var(--muted); }
+.pw-handle .prefix .accent { color: var(--user-accent); }
+.pw-handle .name {
+  color: var(--ink);
+  border-bottom: 0.5px solid var(--user-accent);
+  padding: 0 4px 2px;
+  margin-left: 2px;
+}
+.pw-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.pw-row .accent { color: var(--user-accent); }
+.pw-row .pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--user-accent);
+  border: 0.5px solid var(--user-accent);
+  padding: 3px 9px;
+  background: transparent;
+}
+.pw-cta {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+.pw-cta__btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--paper);
+  background: var(--user-accent);
+  border: 0.5px solid var(--user-accent);
+  padding: 7px 14px;
+  letter-spacing: 0.05em;
+}
+.pw-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pw-compose__line {
+  font-family: var(--serif);
+  font-size: 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  border-bottom: 0.5px solid var(--rule);
+  padding-bottom: 8px;
+}
+.pw-compose__date {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.pw-compose__colon { color: var(--user-accent); font-family: var(--serif); font-weight: 500; }
+.pw-compose__text { color: var(--ink); letter-spacing: -0.005em; }
+.pw-compose__caret {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: var(--user-accent);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: blink 1.05s steps(1) infinite;
+}
+.pw-compose__meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+.pw-compose__meta .accent { color: var(--user-accent); }
+.pw-compose__hint {
+  display: flex;
+  gap: 14px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+.pw-compose__hint kbd {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  background: rgba(0,0,0,0.04);
+  border: 0.5px solid var(--rule);
+  padding: 1px 5px;
+  letter-spacing: 0.04em;
+}
+
+/* three outputs as a row of mini-windows inside step 3 */
+.pw-triplet {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+.pw-mini {
+  border: 0.5px solid var(--rule);
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  min-height: 130px;
+}
+.pw-mini__bar {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 6px 8px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.pw-mini__bar .accent { color: var(--user-accent); }
+.pw-mini__body {
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+}
+.pw-mini--timeline .pw-mini__body { padding: 10px 10px 8px 16px; position: relative; }
+.pw-mini--timeline .pw-mini__body::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 14px;
+  bottom: 12px;
+  width: 0.5px;
+  background: var(--rule-strong);
+}
+.pw-mini-entry {
+  font-family: var(--serif);
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ink);
+  position: relative;
+}
+.pw-mini-entry::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.6;
+}
+.pw-mini-entry--now::before { background: var(--user-accent); width: 6px; height: 6px; opacity: 1; left: -10.5px; }
+.pw-mini-entry__date {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  display: block;
+}
+.pw-mini--llm pre {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+  white-space: pre-wrap;
+}
+.pw-mini--llm .k { color: var(--ink); }
+.pw-mini--llm .accent { color: var(--user-accent); }
+.pw-mini--ask {
+  background: var(--paper);
+}
+.pw-mini--ask .pw-mini__body { gap: 8px; }
+.pw-mini--ask .q, .pw-mini--ask .a {
+  font-family: var(--serif);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.pw-mini--ask .q::before { content: "› "; color: var(--user-accent); font-family: var(--mono); }
+.pw-mini--ask .a { color: var(--muted); padding-left: 10px; border-left: 0.5px solid var(--rule); }
+
+/* timeline preview for step 4 (an actual mini timeline) */
+.pw-timeline {
+  position: relative;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pw-timeline::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 10px;
+  bottom: 10px;
+  width: 0.5px;
+  background: var(--rule-strong);
+}
+.pw-timeline-entry {
+  position: relative;
+}
+.pw-timeline-entry::before {
+  content: "";
+  position: absolute;
+  left: -19px;
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.55;
+}
+.pw-timeline-entry--now::before { background: var(--user-accent); width: 8px; height: 8px; left: -20px; opacity: 1; }
+.pw-timeline-entry--recent::before { background: var(--ink); width: 6px; height: 6px; left: -19.5px; opacity: 0.85; }
+.pw-timeline-entry__date {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.pw-timeline-entry__title {
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.pw-timeline-more {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding-top: 4px;
+}
+
+/* demo: entry composer */
+.demo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.demo-form__row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--serif);
+  font-size: 16px;
+}
+.demo-form__date {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.demo-form__divider {
+  color: var(--user-accent);
+  font-family: var(--serif);
+}
+.demo-form__text {
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+.demo-form__text .caret {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: var(--user-accent);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: blink 1.05s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+.demo-form__hint {
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+
+/* demo: three outputs */
+.demo-tri {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+.demo-tri__cell {
+  border: 0.5px solid var(--rule);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 84px;
+}
+.demo-tri__label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.demo-tri__glyph {
+  font-family: var(--serif);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  margin-top: auto;
+}
+.demo-tri__glyph .colon { color: var(--user-accent); }
+.demo-tri__glyph--mono {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+/* demo: ongoing */
+.demo-ongoing {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.demo-ongoing__row {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--muted);
+}
+.demo-ongoing__date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  width: 60px;
+  flex-shrink: 0;
+}
+.demo-ongoing__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.5;
+  display: inline-block;
+  margin-right: 2px;
+}
+.demo-ongoing__row--now .demo-ongoing__dot { background: var(--user-accent); opacity: 1; width: 7px; height: 7px; }
+.demo-ongoing__row--now { color: var(--ink); }
+.demo-ongoing__more {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  margin-left: 76px;
+  padding-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .step { grid-template-columns: 1fr; gap: 14px; padding: 28px 0; }
+}
+
+/* ============ WHAT IT ISN'T ============ */
+.refusals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 0.5px solid var(--rule);
+  border-bottom: 0.5px solid var(--rule);
+}
+.refusal {
+  padding: 28px 24px 28px 0;
+  border-right: 0.5px solid var(--rule);
+  border-bottom: 0.5px solid var(--rule);
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  font-family: var(--serif);
+  font-size: 16.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.refusal:nth-child(2n) { border-right: 0; padding-left: 24px; }
+.refusal:nth-last-child(-n+2) { border-bottom: 0; }
+.refusal__no {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--user-accent);
+}
+@media (max-width: 720px) {
+  .refusals { grid-template-columns: 1fr; }
+  .refusal { border-right: 0; padding: 22px 0 !important; }
+  .refusal:nth-last-child(-n+2) { border-bottom: 0.5px solid var(--rule); }
+  .refusal:last-child { border-bottom: 0; }
+}
+
+/* ============ PREVIEW (see one in motion) ============ */
+.preview {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 0;
+  border: 0.5px solid var(--rule);
+  min-height: 320px;
+}
+.preview__copy {
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-right: 0.5px solid var(--rule);
+}
+.preview__handle {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.preview__handle .accent { color: var(--user-accent); }
+.preview__name {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4.4vw, 56px);
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--ink);
+}
+.preview__name .colon { color: var(--user-accent); }
+.preview__bio {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--muted);
+  line-height: 1.4;
+  max-width: 30ch;
+}
+.preview__link {
+  margin-top: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--user-accent);
+  border-bottom: 0.5px solid var(--rule-strong);
+  padding-bottom: 2px;
+  align-self: flex-start;
+  transition: border-color 160ms ease;
+}
+.preview__link:hover { border-color: var(--user-accent); }
+.preview__feed {
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.preview__feed::before {
+  content: "";
+  position: absolute;
+  left: 40px;
+  top: 56px;
+  bottom: 56px;
+  width: 0.5px;
+  background: var(--rule-strong);
+}
+.preview-entry {
+  padding-left: 22px;
+  padding-bottom: 22px;
+  position: relative;
+}
+.preview-entry:last-child { padding-bottom: 0; }
+.preview-entry__dot {
+  position: absolute;
+  left: -4px;
+  top: 8px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.7;
+}
+.preview-entry--now .preview-entry__dot { width: 9px; height: 9px; left: -5px; background: var(--user-accent); opacity: 1; }
+.preview-entry--recent .preview-entry__dot { width: 7px; height: 7px; left: -4px; opacity: 0.9; }
+.preview-entry--past .preview-entry__dot { width: 5px; height: 5px; left: -3px; opacity: 0.55; }
+.preview-entry__date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.preview-entry__title {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+@media (max-width: 720px) {
+  .preview { grid-template-columns: 1fr; }
+  .preview__copy { border-right: 0; border-bottom: 0.5px solid var(--rule); }
+  .preview__feed { padding: 32px 28px; }
+  .preview__feed::before { left: 32px; }
+}
+
+/* ============ CLOSING / CTA ============ */
+.closing {
+  padding: 120px 0 0;
+  text-align: left;
+}
+.closing__h {
+  font-family: var(--serif);
+  font-size: clamp(40px, 5.4vw, 64px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  max-width: 18ch;
+}
+.closing__h .colon { color: var(--user-accent); }
+.closing__sub {
+  margin-top: 24px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--muted);
+  max-width: 36ch;
+  line-height: 1.4;
+}
+.closing__form {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-bottom: 0.5px solid var(--ink);
+  padding-bottom: 10px;
+  max-width: 460px;
+}
+.closing__form .handle-input {
+  border-bottom: 0;
+  flex: 1;
+  min-width: 200px;
+}
+.closing__form .hero__claim { padding: 8px 16px; }
+.closing__note {
+  margin-top: 18px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* ============ FOOTER (nav) ============ */
+.foot {
+  margin-top: 96px;
+  padding-top: 56px;
+  border-top: 0.5px solid var(--rule);
+}
+.foot__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+  padding-bottom: 56px;
+}
+.foot__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.foot__wm {
+  font-family: var(--serif);
+  font-size: 36px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--ink);
+}
+.foot__wm .colon { color: var(--user-accent); }
+.foot__tag {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--muted);
+  max-width: 24ch;
+  line-height: 1.4;
+}
+.foot__col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.foot__col h4 {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.foot__col a {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  border-bottom: 0.5px solid transparent;
+  padding-bottom: 1px;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+.foot__col a:hover { border-color: var(--user-accent); color: var(--user-accent); }
+.foot__col a .badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--user-accent);
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+.foot__bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-top: 28px;
+  border-top: 0.5px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.foot__bottom .brand { color: var(--ink); }
+.foot__bottom .brand .colon { color: var(--user-accent); }
+.foot__bottom a:hover { color: var(--ink); }
+.foot__bottom .accent { color: var(--user-accent); }
+@media (max-width: 720px) {
+  .foot__grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .foot__brand { grid-column: 1 / -1; }
+}
+@media (max-width: 540px) {
+  .foot { margin-top: 64px; padding-top: 36px; }
+  .foot__grid { grid-template-columns: 1fr; gap: 24px; padding-bottom: 36px; }
+  .foot__wm { font-size: 30px; }
+}
+
+/* ============ MOBILE: horizontal scroll for wide demos ============ */
+@media (max-width: 720px) {
+  .step__demo {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+    margin: 0 -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    scroll-snap-type: x proximity;
+  }
+  .step__demo > * { min-width: 460px; scroll-snap-align: start; }
+  .pw-triplet {
+    grid-template-columns: repeat(3, 240px) !important;
+    overflow: visible;
+    min-width: 740px;
+  }
+  .dual__ai { overflow-x: auto; }
+}
+@media (max-width: 540px) {
+  .hero__cta { flex-direction: column; align-items: stretch; gap: 12px; }
+  .handle-input { min-width: 0; width: 100%; }
+  .hero__claim { align-self: flex-start; }
+  .hero__or { display: none; }
+  .closing__form { flex-direction: column; align-items: stretch; gap: 12px; border-bottom: 0; }
+  .closing__form .handle-input { border-bottom: 0.5px solid var(--ink); padding-bottom: 8px; }
+}
+
+@media (max-width: 540px) {
+  .page { padding: 28px 20px 64px; }
+  .hero { padding: 56px 0 48px; }
+  .section { padding: 64px 0; }
+  .closing { padding-top: 80px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="bar">
+    <a class="bar__brand" href="logr.html" aria-label="logr">logr<span class="colon">:</span></a>
+    <nav class="bar__util" aria-label="utilities">
+      <a href="Brand Kit.html">brand</a>
+      <a href="dashboard.html">dashboard</a>
+      <a href="koshik.html">see one</a>
+      <a class="cta" href="#claim">claim a handle</a>
+    </nav>
+  </header>
+
+  <!-- ============ HELLO (founder intro) ============ -->
+  <section class="hello" aria-label="a note from the maker">
+    <a class="hello__avatar" href="koshik.html" aria-label="koshik's logr">
+      <img src="assets/avatar.webp" alt="koshik" width="96" height="96" loading="eager">
+    </a>
+    <p class="hello__copy">
+      <span class="hi">hi, i'm <a href="koshik.html">koshik</a>.</span>
+      i made logr because the resume i had didn't fit the life i was living. this is a notebook for the rest of it — mine, yours, the next ten years.
+    </p>
+  </section>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <h1 class="hero__wordmark" aria-label="logr">logr<span class="colon">:</span></h1>
+    <p class="hero__lede">log your life. read by humans, ingested by machines.</p>
+    <p class="hero__sub">
+      write events from your life — work, moves, mundane tuesdays — once. it becomes a readable timeline for visitors and an exportable <span style="color:var(--user-accent)">llm.txt</span> any ai tool can ingest. one timeline. two readers.
+    </p>
+    <div class="hero__cta">
+      <label class="handle-input" for="handle-hero">
+        <span class="handle-input__prefix">logr.life<span class="accent">/</span></span>
+        <input id="handle-hero" type="text" placeholder="yourname" spellcheck="false" autocomplete="off" maxlength="24">
+      </label>
+      <button type="button" class="hero__claim">claim →</button>
+      <span class="hero__or">or</span>
+      <a class="hero__see" href="koshik.html">see one in motion · logr.life/koshik →</a>
+    </div>
+  </section>
+
+  <!-- ============ 01 DUAL READER ============ -->
+  <section class="section">
+    <div class="section__head">
+      <div class="section__num">01 — the duality</div>
+      <div>
+        <h2 class="section__title">one entry<span class="colon">.</span> two readings<span class="colon">.</span></h2>
+        <p class="section__sub">you write it once. it lives as prose for the people who know you, and as structured context for the agents who don't.</p>
+      </div>
+    </div>
+
+    <div class="dual" aria-label="how a single entry is read by humans and by ai">
+      <div class="dual__col" aria-label="human view">
+        <div class="dual__head">
+          <span>the human voice</span>
+          <span class="accent">serif</span>
+        </div>
+        <div class="dual__entry">
+          <div class="dual__entry__date">2026.02</div>
+          <h3 class="dual__entry__title">built zhentan. won the bnb openclaw hackathon.</h3>
+          <p class="dual__entry__body">top project out of 600 builders. the community spun up a token within hours; it hit a $250k market cap and crossed 150 users in week one. felt good.</p>
+        </div>
+        <div class="dual__legend">
+          <div>read at the speed of a sentence.</div>
+          <div>noticed by a person who knows you.</div>
+        </div>
+      </div>
+
+      <div class="dual__col" aria-label="ai view">
+        <div class="dual__head">
+          <span>the machine voice</span>
+          <span class="accent">llm.txt</span>
+        </div>
+<pre class="dual__ai"><span class="hash">## 2026.02 · milestone</span>
+<span class="k">event:</span>       <span class="v">won bnb openclaw hackathon</span>
+<span class="k">project:</span>     <span class="v">zhentan</span>
+<span class="k">role:</span>        <span class="v">builder</span>
+<span class="k">competitors:</span> <span class="v">600</span>
+<span class="k">outcome:</span>     <span class="accent">top project</span>
+<span class="k">traction:</span>    <span class="v">$250k market cap;
+              150 users in week one</span>
+<span class="k">url:</span>         <span class="v">zhentan.me</span>
+<span class="k">tags:</span>        <span class="v">crypto, hackathon, bnb</span></pre>
+        <div class="dual__legend">
+          <div>read at the speed of a token.</div>
+          <div>ingested as context by an agent.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 FLOW ============ -->
+  <section class="section">
+    <div class="section__head">
+      <div class="section__num">02 — how it works</div>
+      <div>
+        <h2 class="section__title">four steps<span class="colon">.</span> the fourth never ends<span class="colon">.</span></h2>
+        <p class="section__sub">no wizard. no dashboard. write a sentence, hit save, walk away.</p>
+      </div>
+    </div>
+
+    <div class="flow">
+
+      <!-- step 1 -->
+      <div class="step">
+        <div class="step__num">01</div>
+        <div class="step__copy">
+          <h3 class="step__title">claim a handle.</h3>
+          <p class="step__body">your handle is your address. <span style="color:var(--user-accent)">logr.life/koshik</span> — that's the page, the llm.txt, eventually the chat endpoint. one handle, one life.</p>
+        </div>
+        <div class="step__demo" style="padding: 0; border: 0;">
+          <div class="preview-window">
+            <div class="preview-window__bar">
+              <span class="preview-window__dots"><span></span><span></span><span></span></span>
+              <span class="url">logr.life<span class="accent">/</span>claim</span>
+            </div>
+            <div class="preview-window__body">
+              <div class="pw-handle">
+                <span class="prefix">logr.life<span class="accent">/</span></span><span class="name">koshik</span>
+              </div>
+              <div class="pw-row">
+                <span class="pill">available</span>
+                <span>· <span class="accent">free</span> forever · no email yet</span>
+              </div>
+              <div class="pw-cta">
+                <button type="button" class="pw-cta__btn">claim →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- step 2 -->
+      <div class="step">
+        <div class="step__num">02</div>
+        <div class="step__copy">
+          <h3 class="step__title">add an entry.</h3>
+          <p class="step__body">a date and a sentence. that's the whole format. add a link or a photo if you want. don't if you don't.</p>
+        </div>
+        <div class="step__demo" style="padding: 0; border: 0;">
+          <div class="preview-window">
+            <div class="preview-window__bar">
+              <span class="preview-window__dots"><span></span><span></span><span></span></span>
+              <span class="url">logr.life<span class="accent">/</span>koshik<span class="accent">/</span>new</span>
+            </div>
+            <div class="preview-window__body">
+              <div class="pw-compose">
+                <div class="pw-compose__line">
+                  <span class="pw-compose__date">2026.05.21</span>
+                  <span class="pw-compose__colon">:</span>
+                  <span class="pw-compose__text">started logr<span class="pw-compose__caret"></span></span>
+                </div>
+                <div class="pw-compose__meta">
+                  <span>tag · <span class="accent">milestone</span></span>
+                  <span>1 link · 0 photos</span>
+                </div>
+                <div class="pw-compose__hint">
+                  <span><kbd>⌘</kbd> <kbd>↵</kbd> save</span>
+                  <span><kbd>esc</kbd> close</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- step 3 -->
+      <div class="step">
+        <div class="step__num">03</div>
+        <div class="step__copy">
+          <h3 class="step__title">it becomes three things.</h3>
+          <p class="step__body">your timeline updates. your llm.txt regenerates. and one day, your chat endpoint learns the new entry. nothing else changes.</p>
+        </div>
+        <div class="step__demo" style="padding: 0; border: 0;">
+          <div class="pw-triplet">
+            <div class="pw-mini pw-mini--timeline">
+              <div class="pw-mini__bar"><span class="accent">/</span>koshik</div>
+              <div class="pw-mini__body">
+                <div class="pw-mini-entry pw-mini-entry--now">
+                  <span class="pw-mini-entry__date">2026.05</span>
+                  started logr.
+                </div>
+                <div class="pw-mini-entry">
+                  <span class="pw-mini-entry__date">2026.04</span>
+                  built sage.
+                </div>
+                <div class="pw-mini-entry">
+                  <span class="pw-mini-entry__date">2026.02</span>
+                  zhentan.
+                </div>
+              </div>
+            </div>
+            <div class="pw-mini pw-mini--llm">
+              <div class="pw-mini__bar"><span class="accent">/</span>koshik<span class="accent">/</span>llm.txt</div>
+              <div class="pw-mini__body">
+<pre><span class="k">handle:</span> koshik
+<span class="k">place:</span>  bengaluru
+<span class="k">now:</span>    <span class="accent">building sage</span>
+<span class="k">2026.05</span> started logr
+<span class="k">2026.04</span> sage on solana
+<span class="k">2026.02</span> won zhentan</pre>
+              </div>
+            </div>
+            <div class="pw-mini pw-mini--ask">
+              <div class="pw-mini__bar"><span class="accent">/</span>koshik<span class="accent">/</span>ask</div>
+              <div class="pw-mini__body">
+                <div class="q">what's koshik working on?</div>
+                <div class="a">sage. an ai co-signer for solana wallets. live on mainnet.</div>
+                <div class="q">since when?</div>
+                <div class="a">april 2026.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- step 4 -->
+      <div class="step">
+        <div class="step__num">04</div>
+        <div class="step__copy">
+          <h3 class="step__title">keep going.</h3>
+          <p class="step__body">one entry a year. one a week. one on a tuesday because the bread was good. a life is never done. logr is never sealed.</p>
+        </div>
+        <div class="step__demo" style="padding: 0; border: 0;">
+          <div class="preview-window">
+            <div class="preview-window__bar">
+              <span class="preview-window__dots"><span></span><span></span><span></span></span>
+              <span class="url">logr.life<span class="accent">/</span>koshik — <span style="color:var(--faint)">18 entries · 12 years</span></span>
+            </div>
+            <div class="preview-window__body">
+              <div class="pw-timeline">
+                <div class="pw-timeline-entry pw-timeline-entry--now">
+                  <div class="pw-timeline-entry__date">2026.05</div>
+                  <div class="pw-timeline-entry__title">started logr.</div>
+                </div>
+                <div class="pw-timeline-entry pw-timeline-entry--recent">
+                  <div class="pw-timeline-entry__date">2026.04</div>
+                  <div class="pw-timeline-entry__title">built sage on solana.</div>
+                </div>
+                <div class="pw-timeline-entry pw-timeline-entry--recent">
+                  <div class="pw-timeline-entry__date">2025.11</div>
+                  <div class="pw-timeline-entry__title">presented at devconnect argentina.</div>
+                </div>
+                <div class="pw-timeline-entry">
+                  <div class="pw-timeline-entry__date">2019.01</div>
+                  <div class="pw-timeline-entry__title">founded consenso labs.</div>
+                </div>
+                <div class="pw-timeline-more">— ⋯ fourteen more, all the way back to 2014 ⋯ —</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ 03 PREVIEW ============ -->
+  <section class="section">
+    <div class="section__head">
+      <div class="section__num">03 — see one</div>
+      <div>
+        <h2 class="section__title">a logr in motion<span class="colon">.</span></h2>
+        <p class="section__sub">koshik's been keeping his since 2014, retroactively. start today, go back as far as you remember.</p>
+      </div>
+    </div>
+
+    <a class="preview" href="koshik.html" aria-label="visit koshik's logr">
+      <div class="preview__copy">
+        <span class="preview__handle">logr.life<span class="accent">/</span>koshik</span>
+        <span class="preview__name">koshik raj<span class="colon">:</span></span>
+        <p class="preview__bio">a builder. in crypto since 2018, in security since before that. mostly: a quiet bet that this would matter.</p>
+        <span class="preview__link">read the full log →</span>
+      </div>
+      <div class="preview__feed">
+        <div class="preview-entry preview-entry--now">
+          <span class="preview-entry__dot" aria-hidden="true"></span>
+          <div class="preview-entry__date">2026.05</div>
+          <div class="preview-entry__title">started logr.</div>
+        </div>
+        <div class="preview-entry preview-entry--recent">
+          <span class="preview-entry__dot" aria-hidden="true"></span>
+          <div class="preview-entry__date">2026.04</div>
+          <div class="preview-entry__title">built sage on solana.</div>
+        </div>
+        <div class="preview-entry preview-entry--recent">
+          <span class="preview-entry__dot" aria-hidden="true"></span>
+          <div class="preview-entry__date">2025.11</div>
+          <div class="preview-entry__title">devconnect argentina.</div>
+        </div>
+        <div class="preview-entry preview-entry--past">
+          <span class="preview-entry__dot" aria-hidden="true"></span>
+          <div class="preview-entry__date">2019.01</div>
+          <div class="preview-entry__title">founded consenso labs.</div>
+        </div>
+        <div class="preview-entry preview-entry--past">
+          <span class="preview-entry__dot" aria-hidden="true"></span>
+          <div class="preview-entry__date">2014</div>
+          <div class="preview-entry__title">mtech, manipal.</div>
+        </div>
+      </div>
+    </a>
+  </section>
+
+  <!-- ============ CLOSING ============ -->
+  <section class="closing" id="claim">
+    <h2 class="closing__h">log your life<span class="colon">.</span></h2>
+    <p class="closing__sub">it takes about ninety seconds to write the first one. the next one waits until you have something to say.</p>
+    <form class="closing__form" onsubmit="event.preventDefault();">
+      <label class="handle-input" for="handle-claim">
+        <span class="handle-input__prefix">logr.life<span class="accent">/</span></span>
+        <input id="handle-claim" type="text" placeholder="yourname" spellcheck="false" autocomplete="off" maxlength="24">
+      </label>
+      <button type="submit" class="hero__claim">claim →</button>
+    </form>
+    <p class="closing__note">free forever for personal logs · early access · no email yet, just your handle</p>
+  </section>
+
+  <!-- ============ FOOTER (nav) ============ -->
+  <footer class="foot">
+    <div class="foot__grid">
+      <div class="foot__brand">
+        <span class="foot__wm">logr<span class="colon">:</span></span>
+        <span class="foot__tag">a personal life-log, built for humans and the machines they raise.</span>
+      </div>
+      <nav class="foot__col" aria-label="product">
+        <h4>product</h4>
+        <a href="#claim">claim a handle</a>
+        <a href="koshik.html">see an example</a>
+        <a href="dashboard.html">dashboard</a>
+        <a href="#">pricing <span class="badge">soon</span></a>
+      </nav>
+      <nav class="foot__col" aria-label="brand">
+        <h4>brand</h4>
+        <a href="Brand Kit.html">brand kit</a>
+        <a href="koshik.html#llm">llm.txt format</a>
+        <a href="#">/ask api <span class="badge">soon</span></a>
+        <a href="#">changelog</a>
+      </nav>
+      <nav class="foot__col" aria-label="elsewhere">
+        <h4>elsewhere</h4>
+        <a href="https://x.com/rajkoshik" target="_blank" rel="noopener noreferrer">x</a>
+        <a href="https://github.com/koshikraj" target="_blank" rel="noopener noreferrer">github</a>
+        <a href="mailto:hi@logr.life">contact</a>
+        <a href="#">privacy &amp; colophon</a>
+      </nav>
+    </div>
+    <div class="foot__bottom">
+      <span class="brand">logr<span class="colon">:</span> &nbsp;— log your life.</span>
+      <span>built in bengaluru <span class="accent">·</span> 2026</span>
+      <span><a href="koshik.html">→ view koshik's logr</a></span>
+    </div>
+  </footer>
+
+</div>
+
+<script src="theme.js" defer></script>
+<script>
+// tiny ui: hero handle field "claim" button confirms the chosen handle visually
+(function () {
+  function wire(input, button) {
+    if (!input || !button) return;
+    button.addEventListener('click', () => {
+      const v = (input.value || '').trim().toLowerCase().replace(/[^a-z0-9\-_]/g, '');
+      if (!v) { input.focus(); return; }
+      button.textContent = `logr.life/${v} reserved · check email later →`;
+      button.style.opacity = '0.7';
+      button.disabled = true;
+      input.value = v;
+    });
+  }
+  wire(document.getElementById('handle-hero'), document.querySelector('.hero__cta .hero__claim'));
+  wire(document.getElementById('handle-claim'), document.querySelector('#claim .hero__claim'));
+})();
+</script>
+
+</body>
+</html>

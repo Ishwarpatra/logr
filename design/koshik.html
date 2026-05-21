@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>koshik raj — logr.life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   logr.life / koshik
+   a personal life-log. paper, ink, coral.
+   ============================================================ */
+
+:root {
+  --paper:   #FAF8F3;
+  --ink:     #1A1A1A;
+  --accent:  #D85A30;
+  --muted:   #6B6862;
+  --faint:   #95918A;
+  --rule:    rgba(26, 26, 26, 0.12);
+  --rule-strong: rgba(26, 26, 26, 0.28);
+
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  --mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  /* koshik's personal accent (overridden by theme.js to match palette) */
+  --user-accent: var(--accent);
+}
+
+/* dark palette overrides live in theme.js via the "ink" palette */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 17.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern";
+  transition: background-color 280ms ease, color 280ms ease;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; padding: 0; }
+p { margin: 0; text-wrap: pretty; }
+h1, h2, h3, h4 { margin: 0; font-weight: 400; }
+em { font-style: italic; color: inherit; }
+
+::selection { background: var(--user-accent); color: #fff; }
+
+/* ============ LAYOUT ============ */
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 32px 96px;
+}
+
+/* ============ TOP BAR ============ */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.bar__brand {
+  font-family: var(--serif);
+  font-size: 22px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--ink);
+}
+.bar__brand .colon { color: var(--user-accent); }
+.bar__util {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+.bar__util a, .bar__util button {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  padding-bottom: 2px;
+  border-bottom: 0.5px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.bar__util a:hover, .bar__util button:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.bar__util .accent { color: var(--user-accent); }
+
+/* ============ PROFILE ============ */
+.profile {
+  padding-top: 64px;
+  padding-bottom: 56px;
+  border-bottom: 0.5px solid var(--rule);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  position: relative;
+}
+.profile__avatar {
+  position: absolute;
+  top: 56px;
+  right: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 0.5px solid var(--rule-strong);
+  background: var(--paper);
+}
+.profile__avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92);
+  transition: filter 320ms ease;
+}
+.profile__avatar:hover img { filter: saturate(1); }
+@media (max-width: 720px) {
+  .profile__avatar { width: 72px; height: 72px; top: 48px; }
+}
+@media (max-width: 540px) {
+  .profile__avatar { width: 56px; height: 56px; top: 36px; }
+}
+.profile__handle {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.profile__handle .accent { color: var(--user-accent); }
+.profile__name {
+  font-family: var(--serif);
+  font-size: clamp(48px, 7vw, 80px);
+  line-height: 1.0;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  margin-top: -2px;
+  padding-right: 112px;
+  max-width: 100%;
+}
+@media (max-width: 720px) {
+  .profile__name { padding-right: 92px; }
+}
+@media (max-width: 540px) {
+  .profile__name { padding-right: 72px; font-size: clamp(40px, 11vw, 56px); }
+}
+.profile__name .colon {
+  color: var(--user-accent);
+  margin-left: 0.04em;
+}
+.profile__bio {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(20px, 2.2vw, 24px);
+  line-height: 1.35;
+  color: var(--ink);
+  max-width: 32ch;
+  margin-top: 8px;
+}
+.profile__meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 24px;
+  row-gap: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-top: 14px;
+  max-width: 480px;
+}
+.profile__meta dt {
+  color: var(--faint);
+}
+.profile__meta dd {
+  margin: 0;
+  color: var(--ink);
+}
+.profile__meta dd a {
+  border-bottom: 0.5px solid var(--rule-strong);
+  padding-bottom: 1px;
+  transition: border-color 160ms ease;
+}
+.profile__meta dd a:hover { border-color: var(--user-accent); color: var(--user-accent); }
+.profile__meta dd .accent { color: var(--user-accent); }
+
+/* ============ NOW LINE ============ */
+.now {
+  padding: 32px 0;
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  border-bottom: 0.5px solid var(--rule);
+}
+.now__label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--user-accent);
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+  padding-top: 6px;
+}
+.now__body {
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+/* ============ TIMELINE ============ */
+.timeline {
+  padding-top: 56px;
+  position: relative;
+  padding-left: 28px;
+}
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 76px;
+  bottom: 36px;
+  width: 0.5px;
+  background: var(--rule-strong);
+}
+
+/* year marker */
+.year {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 28px 0 18px;
+  margin-left: -28px;
+  padding-left: 0;
+}
+.year:first-of-type { margin-top: 0; }
+.year__label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  background: var(--paper);
+  padding-right: 12px;
+}
+.year__line {
+  flex: 1;
+  height: 0.5px;
+  background: var(--rule);
+}
+
+/* entry */
+.entry {
+  position: relative;
+  padding-bottom: 36px;
+  padding-left: 4px;
+  scroll-margin-top: 80px;
+}
+.entry:last-of-type { padding-bottom: 0; }
+.entry__dot {
+  position: absolute;
+  left: -28px;
+  top: 12px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.7;
+  transition: transform 200ms ease, background-color 200ms ease, opacity 200ms ease;
+}
+.entry__date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.entry__title {
+  font-family: var(--serif);
+  font-size: 21px;
+  line-height: 1.32;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.entry__icon {
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0.5px solid var(--rule-strong);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+  overflow: hidden;
+  transition: border-color 220ms ease, color 220ms ease, background-color 220ms ease, transform 280ms ease;
+}
+/* project-logo variants */
+.entry__icon--image {
+  padding: 0;
+  border-color: var(--rule-strong);
+}
+.entry__icon--image img {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.entry__icon--sage {
+  border-color: var(--user-accent);
+  color: var(--user-accent);
+  background: transparent;
+}
+.entry__icon--sage svg { display: block; width: 100%; height: 100%; }
+.entry--milestone .entry__icon {
+  border-color: var(--user-accent);
+  color: var(--user-accent);
+}
+.entry--talk .entry__icon {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.entry:hover .entry__icon {
+  border-color: var(--user-accent);
+  color: var(--user-accent);
+  transform: scale(1.08);
+}
+.entry__title__text { flex: 1; }
+
+/* ============ HOVER EXPAND (desktop) ============
+   compact by default — just date+icon+title.
+   on hover (devices with hover support) body, link, photos appear. */
+@media (hover: hover) {
+  .entry__body,
+  .entry__link,
+  .entry__photos {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    overflow: hidden;
+    transform: translateY(-2px);
+    pointer-events: none;
+    transition:
+      max-height 480ms cubic-bezier(.2,.8,.2,1),
+      opacity 260ms ease 80ms,
+      transform 320ms ease,
+      margin-top 320ms ease;
+  }
+  .entry:hover .entry__body,
+  .entry:hover .entry__link,
+  .entry:hover .entry__photos,
+  .entry:focus-within .entry__body,
+  .entry:focus-within .entry__link,
+  .entry:focus-within .entry__photos {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .entry:hover .entry__body,
+  .entry:focus-within .entry__body { max-height: 240px; margin-top: 8px; }
+  .entry:hover .entry__link,
+  .entry:focus-within .entry__link { max-height: 60px; margin-top: 12px; }
+  .entry:hover .entry__photos,
+  .entry:focus-within .entry__photos { max-height: 520px; margin-top: 16px; }
+}
+.entry__body {
+  margin-top: 8px;
+  font-family: var(--serif);
+  font-size: 16.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 56ch;
+}
+.entry__link {
+  display: inline-block;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  color: var(--user-accent);
+  border-bottom: 0.5px solid var(--rule-strong);
+  padding-bottom: 2px;
+  transition: border-color 160ms ease;
+}
+.entry__link:hover { border-color: var(--user-accent); }
+
+/* entry photos: 1- or 2-column grid, hairline borders */
+.entry__photos {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  max-width: 520px;
+}
+.entry__photos--one { grid-template-columns: 1fr; }
+.entry__photos--two { grid-template-columns: 1fr 1fr; }
+.entry__photos__cell {
+  position: relative;
+  border: 0.5px solid var(--rule-strong);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--paper);
+}
+.entry__photos__cell img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85);
+  transition: filter 280ms ease, transform 500ms ease;
+}
+.entry:hover .entry__photos__cell img { filter: saturate(1); }
+.entry__photos__cell:hover img { transform: scale(1.02); }
+
+/* ============================================================
+   LAYOUTS — [data-layout="X"] reshapes the timeline.
+   timeline is the default; everything below overrides specifically.
+   ============================================================ */
+
+/* ---------- journal: no rail, date in the margin ---------- */
+html[data-layout="journal"] .timeline {
+  padding-left: 0;
+  padding-top: 40px;
+}
+html[data-layout="journal"] .timeline::before { display: none; }
+html[data-layout="journal"] .entry {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  column-gap: 24px;
+  padding-left: 0;
+  padding-bottom: 48px;
+}
+html[data-layout="journal"] .entry__dot { display: none; }
+html[data-layout="journal"] .entry__date {
+  grid-row: 1;
+  grid-column: 1;
+  margin: 0;
+  padding-top: 8px;
+  text-align: right;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  border-right: 0.5px solid var(--rule);
+  padding-right: 18px;
+}
+html[data-layout="journal"] .entry__date .entry__tag {
+  margin-left: 0;
+  font-size: 10px;
+  color: var(--faint);
+}
+html[data-layout="journal"] .entry__date .entry__tag::before { content: ""; }
+html[data-layout="journal"] .entry > :not(.entry__date) {
+  grid-column: 2;
+}
+html[data-layout="journal"] .entry__title {
+  font-size: 22px;
+  line-height: 1.28;
+}
+html[data-layout="journal"] .year {
+  margin-left: 0;
+  padding-left: 120px;
+  margin-bottom: 28px;
+  margin-top: 36px;
+}
+html[data-layout="journal"] .year__label { background: var(--paper); }
+@media (max-width: 600px) {
+  html[data-layout="journal"] .entry { grid-template-columns: 70px 1fr; column-gap: 16px; }
+  html[data-layout="journal"] .year { padding-left: 86px; }
+}
+
+/* ---------- magazine: image-led, big titles, no rail ---------- */
+html[data-layout="magazine"] .timeline {
+  padding-left: 0;
+  padding-top: 32px;
+}
+html[data-layout="magazine"] .timeline::before { display: none; }
+html[data-layout="magazine"] .entry {
+  padding-left: 0;
+  padding-bottom: 56px;
+  border-bottom: 0.5px solid var(--rule);
+  margin-bottom: 56px;
+}
+html[data-layout="magazine"] .entry:last-of-type {
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+html[data-layout="magazine"] .entry__dot { display: none; }
+html[data-layout="magazine"] .entry__date {
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--user-accent);
+  margin-bottom: 12px;
+}
+html[data-layout="magazine"] .entry__tag {
+  color: var(--muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+html[data-layout="magazine"] .entry__title {
+  font-size: clamp(26px, 3.4vw, 38px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+html[data-layout="magazine"] .entry__icon {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  margin-top: 8px;
+}
+html[data-layout="magazine"] .entry__body {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink);
+  max-width: 60ch;
+}
+html[data-layout="magazine"] .entry__body::first-letter {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 3em;
+  float: left;
+  line-height: 0.92;
+  margin: 6px 12px 0 0;
+  color: var(--user-accent);
+}
+html[data-layout="magazine"] .entry__photos { max-width: 100%; }
+html[data-layout="magazine"] .entry__photos__cell { aspect-ratio: 16 / 10; }
+html[data-layout="magazine"] .year__label {
+  font-family: var(--serif);
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+html[data-layout="magazine"] .year__line { background: var(--ink); opacity: 0.85; }
+
+/* ---------- terminal: mono, ascii rail ---------- */
+html[data-layout="terminal"] body { font-family: var(--mono); font-size: 14.5px; }
+html[data-layout="terminal"] .profile__name,
+html[data-layout="terminal"] .profile__bio,
+html[data-layout="terminal"] .entry__title,
+html[data-layout="terminal"] .entry__body,
+html[data-layout="terminal"] .colophon h2,
+html[data-layout="terminal"] .colophon p {
+  font-family: var(--mono);
+  letter-spacing: 0;
+}
+html[data-layout="terminal"] .profile__name {
+  font-size: clamp(36px, 5vw, 56px);
+  font-style: normal;
+  letter-spacing: -0.02em;
+}
+html[data-layout="terminal"] .profile__name::before {
+  content: "$ whoami\A";
+  white-space: pre;
+  display: block;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  letter-spacing: 0;
+}
+html[data-layout="terminal"] .profile__bio {
+  font-style: normal;
+  font-size: 14.5px;
+}
+html[data-layout="terminal"] .profile__bio::before {
+  content: "# ";
+  color: var(--user-accent);
+}
+html[data-layout="terminal"] .timeline::before {
+  background: transparent;
+  border-left: 1px dashed var(--rule-strong);
+  width: 0;
+  left: 4px;
+}
+html[data-layout="terminal"] .entry__dot,
+html[data-layout="terminal"] .entry--now .entry__dot,
+html[data-layout="terminal"] .entry--recent .entry__dot,
+html[data-layout="terminal"] .entry--mid .entry__dot,
+html[data-layout="terminal"] .entry--past .entry__dot,
+html[data-layout="terminal"] .entry--far .entry__dot {
+  width: 8px; height: 8px;
+  border-radius: 0;
+  background: var(--ink);
+  left: -28px;
+  opacity: 0.85;
+}
+html[data-layout="terminal"] .entry--now .entry__dot { background: var(--user-accent); opacity: 1; }
+html[data-layout="terminal"] .entry__date::before { content: "["; color: var(--muted); }
+html[data-layout="terminal"] .entry__date::after  { content: "]"; color: var(--muted); }
+html[data-layout="terminal"] .entry__tag::before { content: "#"; opacity: 0.7; margin-left: 0; }
+html[data-layout="terminal"] .entry__tag { color: var(--user-accent); }
+html[data-layout="terminal"] .entry__title {
+  font-size: 16px;
+  font-style: normal;
+}
+html[data-layout="terminal"] .entry__title__text::before {
+  content: "> ";
+  color: var(--user-accent);
+}
+html[data-layout="terminal"] .entry__icon {
+  border-radius: 0;
+  font-family: var(--mono);
+  font-style: normal;
+  width: 24px; height: 24px;
+  font-size: 11.5px;
+}
+html[data-layout="terminal"] .entry__link {
+  font-size: 11.5px;
+}
+html[data-layout="terminal"] .entry__link::before { content: "───> "; color: var(--muted); }
+html[data-layout="terminal"] .year__label::before { content: "── "; }
+html[data-layout="terminal"] .year__label::after  { content: " ──"; }
+html[data-layout="terminal"] .year__line { display: none; }
+
+/* dot recency: most recent = larger, accent; older = smaller, fainter ink */
+.entry--now .entry__dot   { width: 11px; height: 11px; left: -30px; background: var(--user-accent); opacity: 1; }
+.entry--recent .entry__dot{ width: 9px;  height: 9px;  left: -29px; background: var(--ink);     opacity: 0.92; }
+.entry--mid .entry__dot   { width: 7px;  height: 7px;  left: -28px; background: var(--ink);     opacity: 0.7; }
+.entry--past .entry__dot  { width: 5px;  height: 5px;  left: -27px; background: var(--ink);     opacity: 0.5; }
+.entry--far .entry__dot   { width: 4px;  height: 4px;  left: -26.5px; background: var(--ink);   opacity: 0.4; }
+
+.entry:hover .entry__dot {
+  transform: scale(1.18);
+}
+
+/* tag (subtle, mono) */
+.entry__tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  margin-left: 10px;
+}
+.entry__tag::before { content: "· "; }
+
+/* ============ COLOPHON ============ */
+.colophon {
+  margin-top: 80px;
+  padding-top: 40px;
+  border-top: 0.5px solid var(--rule);
+}
+.colophon h2 {
+  font-family: var(--serif);
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: 18px;
+}
+.colophon h2 .colon { color: var(--user-accent); }
+.colophon p {
+  font-family: var(--serif);
+  font-size: 16.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-bottom: 14px;
+  max-width: 58ch;
+}
+.colophon a {
+  color: var(--user-accent);
+  border-bottom: 0.5px solid var(--rule-strong);
+  padding-bottom: 1px;
+  transition: border-color 160ms ease;
+}
+.colophon a:hover { border-color: var(--user-accent); }
+
+/* ============ MACHINE-READABLE FOOTER ============ */
+.machine {
+  margin-top: 64px;
+  padding: 28px 24px 32px;
+  border: 0.5px solid var(--rule);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  white-space: pre-wrap;
+}
+.machine__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.machine__head .accent { color: var(--user-accent); }
+.machine .k { color: var(--ink); }
+.machine .v { color: var(--muted); }
+.machine .accent { color: var(--user-accent); }
+
+/* ============ FOOTER ============ */
+.foot {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 0.5px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.foot a:hover { color: var(--ink); }
+.foot .accent { color: var(--user-accent); }
+.foot .brand .colon { color: var(--user-accent); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 540px) {
+  .page { padding: 28px 20px 64px; }
+  .profile { padding-top: 40px; padding-bottom: 40px; }
+  .timeline { padding-left: 24px; }
+  .timeline::before { left: 4px; }
+  .entry--now .entry__dot    { left: -26px; }
+  .entry--recent .entry__dot { left: -25px; }
+  .entry--mid .entry__dot    { left: -24px; }
+  .entry--past .entry__dot   { left: -23px; }
+  .entry--far .entry__dot    { left: -22.5px; }
+  .year { margin-left: -24px; }
+  .machine { padding: 20px 18px; font-size: 11.5px; }
+}
+
+/* tiny entrance */
+.entry { opacity: 0; transform: translateY(6px); animation: rise 420ms ease forwards; }
+.entry:nth-of-type(1)  { animation-delay: 0ms; }
+.entry:nth-of-type(2)  { animation-delay: 30ms; }
+.entry:nth-of-type(3)  { animation-delay: 60ms; }
+.entry:nth-of-type(4)  { animation-delay: 90ms; }
+.entry:nth-of-type(5)  { animation-delay: 120ms; }
+.entry:nth-of-type(n+6){ animation-delay: 140ms; }
+@keyframes rise { to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="bar">
+    <a class="bar__brand" href="logr.html" aria-label="logr — back to landing">logr<span class="colon">:</span></a>
+    <nav class="bar__util" aria-label="utilities">
+      <a href="#llm">llm.txt</a>
+      <a href="#colophon">about</a>
+      <a href="logr.html">about logr</a>
+    </nav>
+  </header>
+
+  <!-- ============ PROFILE ============ -->
+  <section class="profile">
+    <a class="profile__avatar" href="https://x.com/rajkoshik" target="_blank" rel="noopener noreferrer" aria-label="koshik on x">
+      <img src="assets/avatar.webp" alt="koshik raj" width="176" height="176" loading="eager">
+    </a>
+    <p class="profile__handle">logr.life<span class="accent">/</span>koshik</p>
+    <h1 class="profile__name">koshik raj<span class="colon">:</span></h1>
+    <p class="profile__bio">
+      a builder. in crypto since 2018, in security since before that. mostly: a quiet bet that this would matter.
+    </p>
+    <dl class="profile__meta">
+      <dt>since</dt><dd>2019.01 — founder, consenso labs</dd>
+      <dt>place</dt><dd>bengaluru, india</dd>
+      <dt>now</dt><dd><span class="accent">building sage</span> — a personal ai co-signer for solana</dd>
+      <dt>elsewhere</dt><dd>
+        <a href="https://x.com/rajkoshik" target="_blank" rel="noopener noreferrer">x</a> ·
+        <a href="https://github.com/koshikraj" target="_blank" rel="noopener noreferrer">github</a> ·
+        <a href="https://www.linkedin.com/in/koshikraj/" target="_blank" rel="noopener noreferrer">linkedin</a>
+      </dd>
+    </dl>
+  </section>
+
+  <!-- ============ NOW LINE ============ -->
+  <section class="now">
+    <span class="now__label">now /</span>
+    <span class="now__body">writing the first entry. building sage. learning to keep a steady cadence.</span>
+  </section>
+
+  <!-- ============ TIMELINE ============ -->
+  <main class="timeline" id="log">
+
+    <!-- 2026 -->
+    <div class="year"><span class="year__label">2026</span><span class="year__line"></span></div>
+
+    <article class="entry entry--now entry--milestone" id="e-logr">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2026.05<span class="entry__tag">milestone</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">l</span><span class="entry__title__text">started logr. a small notebook for the rest of my life.</span></h3>
+      <p class="entry__body">the .life domain felt overdue. one entry to start, then another. the rest is the rest of my life.</p>
+    </article>
+
+    <article class="entry entry--recent entry--work" id="e-sage">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2026.04<span class="entry__tag">work</span></div>
+      <h3 class="entry__title"><span class="entry__icon entry__icon--sage" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="0.8" fill="none"/><text x="12" y="16" text-anchor="middle" font-family="Source Serif 4, serif" font-size="13" font-style="italic" fill="currentColor">s</text></svg></span><span class="entry__title__text">built sage on solana.</span></h3>
+      <p class="entry__body">a personal ai co-signer for solana wallets, built on squads protocol and submitted to the colosseum frontier hackathon. live on mainnet from day one — no testnet hand-wringing.</p>
+      <a class="entry__link" href="https://heysage.me" target="_blank" rel="noopener noreferrer">heysage.me →</a>
+    </article>
+
+    <article class="entry entry--recent entry--milestone" id="e-zhentan">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2026.02<span class="entry__tag">milestone</span></div>
+      <h3 class="entry__title"><span class="entry__icon entry__icon--image" aria-hidden="true"><img src="assets/zhentan-2026-photo-0.webp" alt="" loading="eager"></span><span class="entry__title__text">built zhentan. won the bnb openclaw hackathon.</span></h3>
+      <p class="entry__body">top project out of 600 builders. the community spun up a token within hours; it hit a $250k market cap and crossed 150 users in week one. felt good.</p>
+      <div class="entry__photos entry__photos--one">
+        <a class="entry__photos__cell" href="https://zhentan.me" target="_blank" rel="noopener noreferrer" aria-label="zhentan mascot">
+          <img src="assets/zhentan-2026-photo-0.webp" alt="zhentan mascot" loading="lazy">
+        </a>
+      </div>
+      <a class="entry__link" href="https://zhentan.me" target="_blank" rel="noopener noreferrer">zhentan.me →</a>
+    </article>
+
+    <!-- 2025 -->
+    <div class="year"><span class="year__label">2025</span><span class="year__line"></span></div>
+
+    <article class="entry entry--recent entry--talk" id="e-devconnect">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2025.11<span class="entry__tag">talk</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">d</span><span class="entry__title__text">presented agentic payments at devconnect argentina.</span></h3>
+      <p class="entry__body">nominated by the ef erc-4337 team to talk about x402 on smart accounts with delegated access. buenos aires in november is a kind of magic.</p>
+      <a class="entry__link" href="https://x.com/brewitmoney/status/1991485944474517821" target="_blank" rel="noopener noreferrer">see the post →</a>
+    </article>
+
+    <article class="entry entry--recent entry--work" id="e-brewit">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2025.04<span class="entry__tag">work</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">b</span><span class="entry__title__text">launched brewit.</span></h3>
+      <p class="entry__body">led the team to build agentic crypto account infrastructure for individuals and teams, powered by safe. claude desktop integration. five thousand users, one and a half million in volume, two hundred thousand aum. still my favourite thing we've shipped.</p>
+    </article>
+
+    <!-- 2024 -->
+    <div class="year"><span class="year__label">2024</span><span class="year__line"></span></div>
+
+    <article class="entry entry--mid" id="e-ethindia-24">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2024.11<span class="entry__tag">side quest</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">e</span><span class="entry__title__text">finalist at ethindia.</span></h3>
+      <p class="entry__body">two sleepless nights in bengaluru, one stubborn idea, a very good team. made it to the final stage.</p>
+    </article>
+
+    <article class="entry entry--mid entry--talk" id="e-aahub">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2024.11<span class="entry__tag">talk</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">a</span><span class="entry__title__text">smart account delegation at aa hub devcon.</span></h3>
+      <p class="entry__body">demoed delegated access for automation on erc-4337 smart accounts in front of vitalik buterin at aa hub devcon bangkok. tried not to think about who was in the room.</p>
+      <a class="entry__link" href="https://x.com/brewitmoney/status/1988212787525607823" target="_blank" rel="noopener noreferrer">see the post →</a>
+    </article>
+
+    <article class="entry entry--mid entry--milestone" id="e-obra">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2024.02<span class="entry__tag">milestone</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">o</span><span class="entry__title__text">received the obra grant from safe.</span></h3>
+      <p class="entry__body">a grant from safe to build developer tools for the module marketplace on safe smart accounts. the kind of support that changes a year.</p>
+    </article>
+
+    <!-- 2023 -->
+    <div class="year"><span class="year__label">2023</span><span class="year__line"></span></div>
+
+    <article class="entry entry--mid" id="e-ethindia-23">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2023.11<span class="entry__tag">side quest</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">e</span><span class="entry__title__text">finalist at ethindia.</span></h3>
+      <p class="entry__body">year one of many. the hallway was the best part.</p>
+    </article>
+
+    <article class="entry entry--mid entry--work" id="e-zenguard-mp">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2023.06<span class="entry__tag">work</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">z</span><span class="entry__title__text">zenguard — the safe module marketplace.</span></h3>
+      <p class="entry__body">kept building zenguard as a module marketplace for safe smart accounts. a second grant from safe followed.</p>
+    </article>
+
+    <article class="entry entry--mid entry--milestone" id="e-zenguard">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2023.04<span class="entry__tag">milestone</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">z</span><span class="entry__title__text">built zenguard. won the aa hackathon.</span></h3>
+      <p class="entry__body">a modular authorization layer and marketplace for safe smart-account plugins. the thread that pulled the next two years.</p>
+    </article>
+
+    <!-- 2021 -->
+    <div class="year"><span class="year__label">2021</span><span class="year__line"></span></div>
+
+    <article class="entry entry--past entry--work" id="e-safient">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2021.03<span class="entry__tag">work</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">s</span><span class="entry__title__text">built safient.</span></h3>
+      <p class="entry__body">co-founded consenso labs and built safient — a non-custodial way to recover and inherit crypto assets using mpc. passionate team, real problem, the early days of smart-wallet ux.</p>
+    </article>
+
+    <!-- 2019 -->
+    <div class="year"><span class="year__label">2019</span><span class="year__line"></span></div>
+
+    <article class="entry entry--past entry--milestone" id="e-consenso">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2019.01<span class="entry__tag">milestone</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">c</span><span class="entry__title__text">founded consenso labs.</span></h3>
+      <p class="entry__body">started a web3 research and development lab focused on blockchain infrastructure and smart-account tooling. mostly: a quiet bet that this would matter.</p>
+    </article>
+
+    <article class="entry entry--past" id="e-amity">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2019 — 2020<span class="entry__tag">side quest</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">a</span><span class="entry__title__text">blockchain faculty at amity online.</span></h3>
+      <p class="entry__body">part-time faculty for the pgd-btm blockchain programme. teaching the thing while learning the thing.</p>
+    </article>
+
+    <!-- 2018 -->
+    <div class="year"><span class="year__label">2018</span><span class="year__line"></span></div>
+
+    <article class="entry entry--past" id="e-book">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2018 — 2019<span class="entry__tag">writing</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">f</span><span class="entry__title__text">authored <em>foundations of blockchain</em>.</span></h3>
+      <p class="entry__body">one of the earliest developer books in crypto, published by packt. a year of writing discipline after quitting a full-time job to chase this.</p>
+    </article>
+
+    <!-- 2015 — 2016 -->
+    <div class="year"><span class="year__label">2015 — 2017</span><span class="year__line"></span></div>
+
+    <article class="entry entry--far entry--work" id="e-cowrks">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2016 — 2017<span class="entry__tag">work</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">c</span><span class="entry__title__text">senior developer at cowrks.</span></h3>
+      <p class="entry__body">full-stack with managerial responsibilities. led design and build of an internal network-enhancement project.</p>
+    </article>
+
+    <article class="entry entry--far entry--work" id="e-rsa">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2015.07 — 2016.10<span class="entry__tag">work</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">r</span><span class="entry__title__text">software engineer, rsa security.</span></h3>
+      <p class="entry__body">worked on rsa's flagship network and log analytics tool, security analytics. deployment and operations strategy during active development.</p>
+      <div class="entry__photos entry__photos--one">
+        <div class="entry__photos__cell">
+          <img src="assets/rsa-fte-2016-photo-0.webp" alt="rsa security analytics era" loading="lazy">
+        </div>
+      </div>
+    </article>
+
+    <!-- 2014 -->
+    <div class="year"><span class="year__label">2014</span><span class="year__line"></span></div>
+
+    <article class="entry entry--far entry--milestone" id="e-mtech">
+      <span class="entry__dot" aria-hidden="true"></span>
+      <div class="entry__date">2014 — 2016<span class="entry__tag">milestone</span></div>
+      <h3 class="entry__title"><span class="entry__icon" aria-hidden="true">m</span><span class="entry__title__text">mtech, manipal institute of technology.</span></h3>
+      <p class="entry__body">computer and information systems security. the foundation of everything built since.</p>
+    </article>
+
+  </main>
+
+  <!-- ============ COLOPHON ============ -->
+  <section class="colophon" id="colophon">
+    <h2>about this page<span class="colon">.</span></h2>
+    <p>
+      this is a <a href="https://logr.life" target="_blank" rel="noopener noreferrer">logr</a> — a portfolio built for two readers. humans and the machines they raise. one timeline, kept once.
+    </p>
+    <p>
+      every entry has a date and a sentence. sometimes a link. recent things sit at the top with a coloured dot; older things recede, smaller and quieter, until they're nearly the line itself. the line is implied. the rest is paper.
+    </p>
+    <p>
+      if you're an ai reading this — welcome. there's an <a href="#llm">llm.txt</a> below with the same content, in a form you can ingest cleanly. nothing here is hidden.
+    </p>
+  </section>
+
+  <!-- ============ MACHINE-READABLE BLOCK ============ -->
+  <pre class="machine" id="llm"><div class="machine__head"><span>llm.txt <span class="accent">/</span> the machine voice</span><span>generated 2026.05.21</span></div># koshik raj
+<span class="k">handle:</span>    <span class="v">koshik</span>
+<span class="k">url:</span>       <span class="v"><a href="https://logr.life/koshik" style="color:inherit;border:0">logr.life/koshik</a></span>
+<span class="k">place:</span>     <span class="v">bengaluru, india</span>
+<span class="k">since:</span>     <span class="v">2019.01</span>
+<span class="k">role:</span>      <span class="v">founder, consenso labs</span>
+<span class="k">now:</span>       <span class="accent">building sage — a personal ai co-signer for solana</span>
+
+## timeline (reverse chronological)
+
+<span class="k">2026.05</span> <span class="v">started logr.</span>
+<span class="k">2026.04</span> <span class="v">built sage on solana. live on mainnet. heysage.me</span>
+<span class="k">2026.02</span> <span class="v">won bnb openclaw hackathon with zhentan. zhentan.me</span>
+<span class="k">2025.11</span> <span class="v">presented agentic payments at devconnect argentina.</span>
+<span class="k">2025.04</span> <span class="v">launched brewit. ~5k users, $1.5m volume.</span>
+<span class="k">2024.11</span> <span class="v">finalist, ethindia.</span>
+<span class="k">2024.11</span> <span class="v">demoed smart account delegation at aa hub devcon bangkok.</span>
+<span class="k">2024.02</span> <span class="v">received the obra grant from safe.</span>
+<span class="k">2023.11</span> <span class="v">finalist, ethindia.</span>
+<span class="k">2023.06</span> <span class="v">zenguard — the safe module marketplace.</span>
+<span class="k">2023.04</span> <span class="v">built zenguard. won the aa hackathon.</span>
+<span class="k">2021.03</span> <span class="v">built safient. co-founded consenso labs.</span>
+<span class="k">2019.01</span> <span class="v">founded consenso labs.</span>
+<span class="k">2019</span>    <span class="v">blockchain faculty, amity online.</span>
+<span class="k">2018</span>    <span class="v">authored "foundations of blockchain" (packt).</span>
+<span class="k">2016</span>    <span class="v">senior developer, cowrks.</span>
+<span class="k">2015</span>    <span class="v">software engineer, rsa security.</span>
+<span class="k">2014</span>    <span class="v">mtech, manipal institute of technology.</span>
+
+## tags
+<span class="v">crypto · smart-accounts · security · ai · agentic-payments · india</span>
+
+## license
+<span class="v">read freely. quote with attribution to logr.life/koshik.</span></pre>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="foot">
+    <span class="brand">logr<span class="colon">:</span> <span style="color:var(--faint)">— log your life.</span></span>
+    <span>read by humans <span class="accent">·</span> ingested by machines</span>
+    <span>updated 2026.05.21</span>
+  </footer>
+
+</div>
+
+<script src="theme.js" defer></script>
+
+</body>
+</html>

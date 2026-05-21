@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>dashboard — logr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   logr / dashboard
+   reusable brand-aligned components: bar, tabs, card, field,
+   button, swatches, check, modal, highlight-row.
+   ============================================================ */
+
+:root {
+  --paper:  #FAF8F3;
+  --ink:    #1A1A1A;
+  --accent: #D85A30;
+  --muted:  #6B6862;
+  --faint:  #95918A;
+  --rule:   rgba(26, 26, 26, 0.12);
+  --rule-strong: rgba(26, 26, 26, 0.28);
+
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  --mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  --user-accent: var(--accent);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 16.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 280ms ease, color 280ms ease;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; padding: 0; }
+p { margin: 0; text-wrap: pretty; }
+h1, h2, h3, h4 { margin: 0; font-weight: 400; }
+em { font-style: italic; }
+
+::selection { background: var(--user-accent); color: #fff; }
+
+/* ============ PAGE ============ */
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 32px 120px;
+}
+
+/* ============ TOP BAR ============ */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 0.5px solid var(--rule);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--paper);
+  backdrop-filter: blur(8px);
+  max-width: 880px;
+  margin: 0 auto;
+}
+.bar__brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--serif);
+  font-size: 22px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.bar__brand .colon { color: var(--user-accent); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--user-accent);
+  border: 0.5px solid var(--user-accent);
+  background: transparent;
+  text-transform: lowercase;
+}
+.bar__util {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.bar__util a, .bar__util button {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  padding-bottom: 2px;
+  border-bottom: 0.5px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bar__util a:hover, .bar__util button:hover { color: var(--ink); border-color: var(--ink); }
+.bar__util .accent { color: var(--user-accent); }
+
+/* ============ HERO ============ */
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 56px 0 24px;
+}
+.hero__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 0.5px solid var(--rule-strong);
+  flex-shrink: 0;
+  background: var(--paper);
+}
+.hero__avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hero__copy { display: flex; flex-direction: column; gap: 4px; }
+.hero__name {
+  font-family: var(--serif);
+  font-size: clamp(32px, 4.4vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.hero__name .colon { color: var(--user-accent); }
+.hero__sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+/* ============ TABS (reusable component) ============ */
+.tabs {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  border: 0.5px solid var(--rule-strong);
+  padding: 4px;
+  margin: 24px 0 32px;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-family: var(--serif);
+  font-size: 15.5px;
+  color: var(--muted);
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  position: relative;
+  transition: color 180ms ease, background-color 220ms ease;
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-current="true"] {
+  color: var(--ink);
+  background: rgba(26, 26, 26, 0.04);
+}
+.tab[aria-current="true"]::after {
+  content: ":";
+  color: var(--user-accent);
+  position: absolute;
+  right: 12px;
+  top: 9px;
+  font-family: var(--serif);
+  font-size: 15.5px;
+}
+.tab__glyph {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+.tab[aria-current="true"] .tab__glyph { color: var(--user-accent); }
+
+/* ============ CARD (reusable) ============ */
+.card {
+  border: 0.5px solid var(--rule-strong);
+  background: var(--paper);
+  padding: 32px 36px 36px;
+  margin-bottom: 24px;
+}
+.card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 0.5px solid var(--rule);
+  margin-bottom: 28px;
+}
+.card__head__title {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-wrap: balance;
+}
+.card__head__title .accent { color: var(--user-accent); }
+
+/* ============ FIELD (reusable) ============ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.field__label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.field input[type="text"],
+.field input[type="url"],
+.field textarea,
+.field select {
+  font-family: var(--serif);
+  font-size: 16px;
+  color: var(--ink);
+  background: transparent;
+  border: 0.5px solid var(--rule-strong);
+  padding: 11px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 180ms ease;
+  line-height: 1.4;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus { border-color: var(--user-accent); }
+.field textarea { resize: vertical; min-height: 92px; font-family: var(--serif); }
+.field__hint {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.field-row > .field { margin-bottom: 0; }
+.field-row--three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+@media (max-width: 600px) {
+  .field-row, .field-row--three { grid-template-columns: 1fr; }
+}
+
+/* avatar field — image preview + drop hint */
+.field-avatar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.field-avatar__thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 0.5px solid var(--rule-strong);
+  flex-shrink: 0;
+}
+.field-avatar__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.field-avatar__hint {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.field-avatar__hint .accent { color: var(--user-accent); cursor: pointer; }
+.field-avatar__hint .accent:hover { text-decoration: underline; }
+
+/* ============ BUTTONS (reusable) ============ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  padding: 9px 16px;
+  border: 0.5px solid var(--rule-strong);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+.btn:hover { border-color: var(--ink); }
+.btn--primary {
+  background: var(--user-accent);
+  border-color: var(--user-accent);
+  color: var(--paper);
+}
+.btn--primary:hover {
+  opacity: 0.92;
+  border-color: var(--user-accent);
+}
+.btn--ghost { border-color: transparent; padding-left: 0; padding-right: 0; color: var(--muted); }
+.btn--ghost:hover { color: var(--ink); }
+.btn--danger { color: var(--user-accent); }
+.btn--small { font-size: 10.5px; padding: 6px 12px; }
+
+/* ============ SWATCHES (reusable) ============ */
+.swatches {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sw {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 0.5px solid var(--rule-strong);
+  cursor: pointer;
+  transition: transform 160ms ease;
+  position: relative;
+  padding: 0;
+  background-clip: padding-box;
+}
+.sw:hover { transform: scale(1.08); }
+.sw[aria-current="true"]::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 0.5px solid var(--ink);
+  border-radius: 50%;
+}
+
+/* ============ CHECKBOX (reusable) ============ */
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--serif);
+  font-size: 15.5px;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+.check input { position: absolute; opacity: 0; pointer-events: none; }
+.check__box {
+  width: 16px; height: 16px;
+  border: 0.5px solid var(--rule-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: transparent;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.check__box::after {
+  content: "";
+  width: 8px; height: 8px;
+  background: var(--user-accent);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.check input:checked + .check__box { border-color: var(--user-accent); }
+.check input:checked + .check__box::after { opacity: 1; }
+.check:hover .check__box { border-color: var(--ink); }
+
+/* ============ THEME PREVIEW (appearance tab) ============ */
+.theme-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border: 0.5px solid var(--rule);
+  background: rgba(0, 0, 0, 0.02);
+  margin-bottom: 24px;
+}
+.theme-preview__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.theme-preview__name {
+  font-family: var(--serif);
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.theme-preview__sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.theme-preview__chips {
+  display: flex;
+  gap: 6px;
+}
+.theme-preview__chip {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 0.5px solid var(--rule-strong);
+}
+
+/* ============ HIGHLIGHTS LIST ============ */
+.hl-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.hl-count {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.hl-count .accent { color: var(--user-accent); }
+.hl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.hl-row {
+  display: grid;
+  grid-template-columns: 24px 48px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--rule);
+}
+.hl-row:last-child { border-bottom: 0; }
+.hl-row__order {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1;
+}
+.hl-row__order button {
+  padding: 1px 2px;
+  color: var(--faint);
+  cursor: pointer;
+}
+.hl-row__order button:hover { color: var(--ink); }
+.hl-row__thumb {
+  width: 44px;
+  height: 44px;
+  background: rgba(0,0,0,0.04);
+  border: 0.5px solid var(--rule-strong);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--muted);
+}
+.hl-row__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hl-row__thumb--accent {
+  border-color: var(--user-accent);
+  color: var(--user-accent);
+}
+.hl-row__copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.hl-row__title {
+  font-family: var(--serif);
+  font-size: 15.5px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hl-row__meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.hl-row__meta .accent { color: var(--user-accent); }
+.hl-row__actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.hl-row__actions button {
+  color: var(--muted);
+  padding: 4px 0;
+  border-bottom: 0.5px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.hl-row__actions button:hover { color: var(--ink); border-color: var(--ink); }
+.hl-row__actions button.danger:hover { color: var(--user-accent); border-color: var(--user-accent); }
+
+/* ============ MODAL ============ */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal[hidden] { display: none; }
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.32);
+  cursor: pointer;
+}
+.modal__card {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--paper);
+  border: 0.5px solid var(--rule-strong);
+  padding: 32px 36px 28px;
+}
+.modal__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 28px; height: 28px;
+  border: 0.5px solid var(--rule);
+  font-family: var(--serif);
+  font-size: 18px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding-bottom: 2px;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+.modal__close:hover { color: var(--ink); border-color: var(--ink); }
+.modal__title {
+  font-family: var(--serif);
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.modal__title .colon { color: var(--user-accent); }
+.modal__sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15.5px;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+
+/* photos field inside modal */
+.field-photos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+.field-photos__cell {
+  width: 84px;
+  height: 84px;
+  border: 0.5px solid var(--rule-strong);
+  overflow: hidden;
+}
+.field-photos__cell img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.field-photos__add {
+  width: 84px;
+  height: 84px;
+  border: 0.5px dashed var(--rule-strong);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+.field-photos__add:hover { color: var(--user-accent); border-color: var(--user-accent); }
+
+/* icon field — image preview + emoji input */
+.field-icon {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.field-icon__preview {
+  width: 60px; height: 60px;
+  border: 0.5px solid var(--rule-strong);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 26px;
+  color: var(--user-accent);
+}
+.field-icon__preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.field-icon__or {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 0.5px solid var(--rule);
+}
+
+/* ============ COMPONENTS PALETTE (the bottom showcase) ============ */
+.showcase {
+  margin-top: 56px;
+  padding-top: 36px;
+  border-top: 0.5px dashed var(--rule);
+}
+.showcase__head {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+.showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.showcase__cell {
+  border: 0.5px solid var(--rule);
+  padding: 18px 20px;
+}
+.showcase__cell__label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+  margin-bottom: 12px;
+}
+@media (max-width: 600px) {
+  .showcase__grid { grid-template-columns: 1fr; }
+}
+
+/* ============ FOOTER ============ */
+.foot {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 0.5px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.foot .brand .colon { color: var(--user-accent); }
+.foot a:hover { color: var(--ink); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 600px) {
+  .bar { padding: 18px 20px; }
+  .page { padding: 0 20px 64px; }
+  .card { padding: 24px 22px 26px; }
+  .modal__card { padding: 26px 24px 22px; }
+  .hl-row { grid-template-columns: 20px 40px 1fr; row-gap: 6px; }
+  .hl-row__actions { grid-column: 3; justify-content: flex-end; padding-top: 2px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="bar">
+  <span class="bar__brand">
+    <a href="logr.html">logr<span class="colon">:</span></a>
+    <span class="chip">dashboard</span>
+  </span>
+  <nav class="bar__util" aria-label="utilities">
+    <a href="koshik.html">view portfolio →</a>
+    <button type="button">sign out</button>
+  </nav>
+</header>
+
+<div class="page">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero__avatar">
+      <img src="assets/avatar.webp" alt="koshik" width="128" height="128">
+    </div>
+    <div class="hero__copy">
+      <h1 class="hero__name">koshik raj<span class="colon">:</span></h1>
+      <p class="hero__sub">edit how your story looks and reads.</p>
+    </div>
+  </section>
+
+  <!-- ============ TABS ============ -->
+  <nav class="tabs" role="tablist" aria-label="dashboard sections">
+    <button type="button" class="tab" role="tab" data-tab="profile" aria-current="true">
+      <span class="tab__glyph">01</span>
+      profile
+    </button>
+    <button type="button" class="tab" role="tab" data-tab="appearance">
+      <span class="tab__glyph">02</span>
+      appearance
+    </button>
+    <button type="button" class="tab" role="tab" data-tab="highlights">
+      <span class="tab__glyph">03</span>
+      highlights
+    </button>
+  </nav>
+
+  <!-- ============ TAB PANEL: PROFILE ============ -->
+  <section class="tab-panel" data-panel="profile" role="tabpanel">
+    <div class="card">
+      <div class="card__head">
+        <span class="card__head__title">profile <span class="accent">/</span> who you are, in your own words</span>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-avatar">avatar</label>
+        <div class="field-avatar">
+          <div class="field-avatar__thumb">
+            <img src="assets/avatar.webp" alt="">
+          </div>
+          <p class="field-avatar__hint">drop a square image, or <span class="accent">choose a file</span>. 256px minimum.</p>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="f-name">name</label>
+          <input id="f-name" type="text" value="Koshik Raj">
+        </div>
+        <div class="field">
+          <label class="field__label" for="f-handle">handle</label>
+          <input id="f-handle" type="text" value="koshik">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-bio">bio</label>
+        <textarea id="f-bio" rows="2">a builder. in crypto since 2018, in security since before that. mostly: a quiet bet that this would matter.</textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="f-status">status</label>
+          <input id="f-status" type="text" value="building sage — a personal ai co-signer for solana">
+        </div>
+        <div class="field">
+          <label class="field__label" for="f-location">location</label>
+          <input id="f-location" type="text" value="bengaluru, india">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-about">about</label>
+        <textarea id="f-about" rows="6">i have been building in crypto since 2018. before that, i spent years inside information security — first as an intern, then a software engineer at rsa — which is where i learned to love hard problems and paranoid systems thinking.
+
+in 2019 i founded consenso labs, a small r&d lab for blockchain infrastructure and smart-account tooling. since then i have shipped safient, zenguard, brewit, zhentan, and most recently sage — a personal ai co-signer for solana wallets, live on mainnet from day one.</textarea>
+        <span class="field__hint">use a blank line between paragraphs.</span>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-socials">socials</label>
+        <textarea id="f-socials" rows="3">x https://x.com/rajkoshik
+github https://github.com/koshikraj
+linkedin https://www.linkedin.com/in/koshikraj/</textarea>
+        <span class="field__hint">one per line · &lt;label&gt; &lt;url&gt;</span>
+      </div>
+
+      <div class="modal__foot" style="margin-top: 36px;">
+        <button type="button" class="btn btn--ghost">discard changes</button>
+        <button type="button" class="btn btn--primary">save profile →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB PANEL: APPEARANCE ============ -->
+  <section class="tab-panel" data-panel="appearance" role="tabpanel" hidden>
+    <div class="card">
+      <div class="card__head">
+        <span class="card__head__title">appearance <span class="accent">/</span> the look of your logr</span>
+      </div>
+
+      <div class="theme-preview" id="themePreview">
+        <div class="theme-preview__copy">
+          <h3 class="theme-preview__name" id="tpName">paper</h3>
+          <p class="theme-preview__sub" id="tpSub">brand default · timeline</p>
+        </div>
+        <div class="theme-preview__chips" id="tpChips">
+          <span class="theme-preview__chip" style="background:#1A1A1A"></span>
+          <span class="theme-preview__chip" style="background:#FAF8F3"></span>
+          <span class="theme-preview__chip" style="background:#D85A30"></span>
+          <span class="theme-preview__chip" style="background:#6B6862"></span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="f-palette">palette</label>
+          <select id="f-palette">
+            <option value="paper">paper — brand default</option>
+            <option value="sepia">sepia — warmer</option>
+            <option value="arctic">arctic — cool white</option>
+            <option value="mono">mono — no colour</option>
+            <option value="citrus">citrus — warm bright</option>
+            <option value="forest">forest — sage</option>
+            <option value="ocean">ocean — deep blue</option>
+            <option value="lavender">lavender — iris</option>
+            <option value="ink">ink — dark</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="f-layout">layout</label>
+          <select id="f-layout">
+            <option value="timeline">timeline — rail + dots</option>
+            <option value="journal">journal — date in the margin</option>
+            <option value="magazine">magazine — editorial</option>
+            <option value="terminal">terminal — mono, ascii rail</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field__label" for="f-dot">timeline dot</label>
+          <select id="f-dot">
+            <option value="circle">circle — default</option>
+            <option value="square">square</option>
+            <option value="diamond">diamond</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="f-photohover">photo hover</label>
+          <select id="f-photohover">
+            <option value="zoom">zoom</option>
+            <option value="saturate">saturate</option>
+            <option value="none">none</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label">accent — your personal colour</label>
+        <div class="swatches" id="accentSwatches">
+          <button type="button" class="sw" data-hex="#D85A30" style="background:#D85A30" aria-current="true" aria-label="coral"></button>
+          <button type="button" class="sw" data-hex="#3E6B4A" style="background:#3E6B4A" aria-label="forest"></button>
+          <button type="button" class="sw" data-hex="#1A73C4" style="background:#1A73C4" aria-label="cobalt"></button>
+          <button type="button" class="sw" data-hex="#7A4EE0" style="background:#7A4EE0" aria-label="iris"></button>
+          <button type="button" class="sw" data-hex="#B89640" style="background:#B89640" aria-label="ochre"></button>
+          <button type="button" class="sw" data-hex="#C24A6A" style="background:#C24A6A" aria-label="rose"></button>
+          <button type="button" class="sw" data-hex="#306B68" style="background:#306B68" aria-label="teal"></button>
+          <button type="button" class="sw" data-hex="#D88030" style="background:#D88030" aria-label="amber"></button>
+          <button type="button" class="sw" data-hex="#1A1A1A" style="background:#1A1A1A" aria-label="ink"></button>
+        </div>
+      </div>
+
+      <div class="modal__foot" style="margin-top: 36px; justify-content: space-between;">
+        <div style="display: flex; gap: 24px;">
+          <label class="check">
+            <input type="checkbox" id="f-rounded">
+            <span class="check__box"></span>
+            <span>rounded corners</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="f-dark">
+            <span class="check__box"></span>
+            <span>dark mode</span>
+          </label>
+        </div>
+        <button type="button" class="btn btn--primary" id="saveTheme">save theme →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB PANEL: HIGHLIGHTS ============ -->
+  <section class="tab-panel" data-panel="highlights" role="tabpanel" hidden>
+    <div class="card">
+      <div class="hl-head">
+        <span class="hl-count"><span class="accent">18</span> highlights · newest first</span>
+        <button type="button" class="btn btn--small" data-open-modal>+ add highlight</button>
+      </div>
+      <div class="hl-list" id="hlList">
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb hl-row__thumb--accent">s</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">built sage on solana</span>
+            <span class="hl-row__meta">apr 2026 · <span class="accent">work</span> · 1 photo · heysage.me</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb"><img src="assets/zhentan-2026-photo-0.webp" alt=""></div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">built zhentan — bnb hackathon winner</span>
+            <span class="hl-row__meta">feb 2026 · <span class="accent">milestone</span> · 1 photo · zhentan.me</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb">d</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">presented agentic payments at devconnect argentina</span>
+            <span class="hl-row__meta">nov 2025 · talk · 0 photos</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb">b</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">launched brewit</span>
+            <span class="hl-row__meta">apr 2025 · work · 0 photos</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb">e</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">finalist at ethindia 2024</span>
+            <span class="hl-row__meta">nov 2024 · side quest · 0 photos</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb">a</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">smart account delegation at aa hub devcon</span>
+            <span class="hl-row__meta">nov 2024 · talk · 0 photos</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb hl-row__thumb--accent">o</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">received the obra grant from safe</span>
+            <span class="hl-row__meta">feb 2024 · <span class="accent">milestone</span> · 0 photos</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb">e</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">finalist at ethindia 2023</span>
+            <span class="hl-row__meta">nov 2023 · side quest · 0 photos</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb hl-row__thumb--accent">z</div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">built zenguard. won the aa hackathon.</span>
+            <span class="hl-row__meta">apr 2023 · <span class="accent">milestone</span> · 0 photos</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+        <div class="hl-row">
+          <div class="hl-row__order"><button aria-label="move up">▲</button><button aria-label="move down">▼</button></div>
+          <div class="hl-row__thumb"><img src="assets/rsa-fte-2016-photo-0.webp" alt=""></div>
+          <div class="hl-row__copy">
+            <span class="hl-row__title">software engineer, rsa security</span>
+            <span class="hl-row__meta">2015 — 2016 · work · 1 photo</span>
+          </div>
+          <div class="hl-row__actions">
+            <button data-open-modal>edit</button>
+            <button class="danger">delete</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- the showcase: small reusable-component reference -->
+    <div class="showcase">
+      <div class="showcase__head">— reusable components in this dashboard</div>
+      <div class="showcase__grid">
+        <div class="showcase__cell">
+          <div class="showcase__cell__label">button · primary &amp; ghost</div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn--primary">save →</button>
+            <button class="btn">edit</button>
+            <button class="btn btn--ghost">discard</button>
+          </div>
+        </div>
+        <div class="showcase__cell">
+          <div class="showcase__cell__label">checkbox</div>
+          <label class="check">
+            <input type="checkbox" checked>
+            <span class="check__box"></span>
+            <span>show in feed</span>
+          </label>
+        </div>
+        <div class="showcase__cell">
+          <div class="showcase__cell__label">field</div>
+          <input type="text" placeholder="bengaluru, india" style="font-family:var(--serif); font-size:15px; background:transparent; border:0.5px solid var(--rule-strong); padding:9px 12px; width:100%; outline:none;">
+        </div>
+        <div class="showcase__cell">
+          <div class="showcase__cell__label">chip</div>
+          <span class="chip">draft</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="foot">
+    <span class="brand">logr<span class="colon">:</span> &nbsp;— dashboard</span>
+    <span>autosaved <span style="color:var(--user-accent)">·</span> 2026.05.21 09:42</span>
+    <span><a href="koshik.html">view portfolio →</a></span>
+  </footer>
+
+</div>
+
+<!-- ============ MODAL: EDIT HIGHLIGHT ============ -->
+<div class="modal" id="editHl" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal__overlay" data-close-modal></div>
+  <div class="modal__card">
+    <button type="button" class="modal__close" data-close-modal aria-label="close">×</button>
+    <h2 class="modal__title" id="modalTitle">edit highlight<span class="colon">.</span></h2>
+    <p class="modal__sub">a moment on your timeline — work, a milestone, a talk, a side quest.</p>
+
+    <div class="field">
+      <label class="field__label" for="h-title">title</label>
+      <input id="h-title" type="text" value="built sage on solana.">
+    </div>
+
+    <div class="field-row field-row--three">
+      <div class="field">
+        <label class="field__label" for="h-date">date</label>
+        <input id="h-date" type="text" value="2026.04">
+        <span class="field__hint">display text</span>
+      </div>
+      <div class="field">
+        <label class="field__label" for="h-year">year</label>
+        <input id="h-year" type="text" value="2026">
+        <span class="field__hint">for sorting</span>
+      </div>
+      <div class="field">
+        <label class="field__label" for="h-tag">tag</label>
+        <select id="h-tag">
+          <option>work</option>
+          <option>milestone</option>
+          <option>talk</option>
+          <option>side quest</option>
+          <option>writing</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label">icon</label>
+      <div class="field-icon">
+        <div class="field-icon__preview" aria-label="current icon">s</div>
+        <span class="field-icon__or">or upload an image · 256px square</span>
+      </div>
+      <span class="field__hint">a single letter, an emoji, or a logo image. shown beside the title.</span>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="h-body">body</label>
+      <textarea id="h-body" rows="4">a personal ai co-signer for solana wallets, built on squads protocol and submitted to the colosseum frontier hackathon. live on mainnet from day one — no testnet hand-wringing.</textarea>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label class="field__label" for="h-link-label">link label</label>
+        <input id="h-link-label" type="text" value="heysage.me">
+      </div>
+      <div class="field">
+        <label class="field__label" for="h-link-url">link url</label>
+        <input id="h-link-url" type="url" value="https://heysage.me">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label">photos</label>
+      <div class="field-photos">
+        <div class="field-photos__cell"><img src="assets/zhentan-2026-photo-0.webp" alt=""></div>
+        <button type="button" class="field-photos__add">+ add</button>
+      </div>
+      <span class="field__hint">up to 4 — shown as a 1 / 2 / 4 grid</span>
+    </div>
+
+    <div class="modal__foot">
+      <button type="button" class="btn btn--ghost" data-close-modal>cancel</button>
+      <button type="button" class="btn btn--primary" data-close-modal>save highlight →</button>
+    </div>
+  </div>
+</div>
+
+<script src="theme.js" defer></script>
+<script>
+(function () {
+  // -------- tabs --------
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.tab-panel');
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      tabs.forEach(t => t.setAttribute('aria-current', t === btn ? 'true' : 'false'));
+      panels.forEach(p => { p.hidden = p.dataset.panel !== target; });
+    });
+  });
+
+  // -------- modal --------
+  const modal = document.getElementById('editHl');
+  document.addEventListener('click', e => {
+    if (e.target.closest('[data-open-modal]')) {
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+    if (e.target.closest('[data-close-modal]')) {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !modal.hidden) {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+  });
+
+  // -------- appearance form -> live theme.js --------
+  const palSel  = document.getElementById('f-palette');
+  const layoutSel = document.getElementById('f-layout');
+  const darkCb   = document.getElementById('f-dark');
+  const accent   = document.getElementById('accentSwatches');
+  const tpName   = document.getElementById('tpName');
+  const tpSub    = document.getElementById('tpSub');
+  const tpChips  = document.getElementById('tpChips');
+
+  function updatePreview() {
+    if (!window.logrTheme) return;
+    const cur = document.documentElement.dataset.palette || 'paper';
+    const curLo = document.documentElement.dataset.layout || 'timeline';
+    const p = window.logrTheme.PALETTES[cur];
+    if (!p) return;
+    tpName.textContent = p.name;
+    tpSub.textContent = p.note + ' · ' + curLo;
+    tpChips.innerHTML = `
+      <span class="theme-preview__chip" style="background:${p.ink}"></span>
+      <span class="theme-preview__chip" style="background:${p.paper}"></span>
+      <span class="theme-preview__chip" style="background:${p.accent}"></span>
+      <span class="theme-preview__chip" style="background:${p.muted}"></span>
+    `;
+    palSel.value = p.name;
+    layoutSel.value = curLo;
+    darkCb.checked = !!p.dark;
+    // accent swatch sync
+    accent.querySelectorAll('.sw').forEach(s => {
+      s.setAttribute('aria-current', s.dataset.hex.toLowerCase() === p.accent.toLowerCase() ? 'true' : 'false');
+    });
+  }
+
+  // run after theme.js loads
+  function whenReady(fn, tries = 20) {
+    if (window.logrTheme) fn();
+    else if (tries > 0) setTimeout(() => whenReady(fn, tries - 1), 50);
+  }
+  whenReady(() => {
+    updatePreview();
+    palSel.addEventListener('change', () => { window.logrTheme.apply(palSel.value); updatePreview(); });
+    layoutSel.addEventListener('change', () => { window.logrTheme.layout(layoutSel.value); updatePreview(); });
+    darkCb.addEventListener('change', () => {
+      window.logrTheme.apply(darkCb.checked ? 'ink' : 'paper');
+      updatePreview();
+    });
+    accent.addEventListener('click', e => {
+      const b = e.target.closest('.sw');
+      if (!b) return;
+      document.documentElement.style.setProperty('--user-accent', b.dataset.hex);
+      accent.querySelectorAll('.sw').forEach(s => {
+        s.setAttribute('aria-current', s === b ? 'true' : 'false');
+      });
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
