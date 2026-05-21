@@ -1,129 +1,146 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Field, Select } from "@/components/ui/Field";
-import { Button } from "@/components/ui/Button";
+import { useTransition } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { updateThemeAction } from "@/lib/actions";
-import {
-  PALETTES,
-  FONT_PAIRS,
-  ACCENT_SWATCHES,
-  resolvePalette,
-  type Theme,
-  type PostStyle,
-  type DotStyle,
-  type PhotoHover,
-} from "@/lib/theme";
-import { cn } from "@/lib/cn";
+import { PALETTES, LAYOUTS, resolvePalette, type Theme } from "@/lib/theme";
+import { LAYOUT_ICONS } from "@/components/layout-icons";
 
-const POST_STYLES: PostStyle[] = ["feed", "card", "centered", "terminal", "polaroid", "magazine"];
-const DOT_STYLES: DotStyle[] = ["circle", "square", "icon"];
-const PHOTO_HOVERS: PhotoHover[] = ["lift", "zoom", "none"];
+const ACCENTS = [
+  { hex: "#D85A30", name: "coral" },
+  { hex: "#3E6B4A", name: "forest" },
+  { hex: "#1A73C4", name: "cobalt" },
+  { hex: "#7A4EE0", name: "iris" },
+  { hex: "#B89640", name: "ochre" },
+  { hex: "#C24A6A", name: "rose" },
+  { hex: "#306B68", name: "teal" },
+  { hex: "#1A1A1A", name: "ink" },
+];
 
-export function ThemeEditor({ theme }: { theme: Theme }) {
-  const [draft, setDraft] = useState<Theme>(theme);
+export function ThemeEditor({
+  theme,
+  onChange,
+}: {
+  theme: Theme;
+  onChange: (t: Theme) => void;
+}) {
   const [pending, start] = useTransition();
   const toast = useToast();
 
   function set<K extends keyof Theme>(k: K, v: Theme[K]) {
-    setDraft((d) => ({ ...d, [k]: v }));
+    onChange({ ...theme, [k]: v });
   }
 
   function save() {
     start(async () => {
-      await updateThemeAction(draft);
+      await updateThemeAction(theme);
       toast("Theme saved");
     });
   }
 
-  const preview = resolvePalette(draft);
+  const p = resolvePalette(theme);
+  const accent = theme.accentOverride || p.accent;
 
   return (
-    <div className="space-y-5">
-      {/* live palette preview */}
-      <div
-        className="flex items-center justify-between rounded-xl border border-zinc-200 p-4"
-        style={{ background: preview.bg }}
-      >
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold" style={{ color: preview.ink }}>
-            {PALETTES[draft.palette]?.name ?? draft.palette}
-            {draft.dark ? " · dark" : ""}
-          </span>
-          <span className="text-xs" style={{ color: preview.muted }}>
-            {FONT_PAIRS[draft.fonts]?.name} · {draft.postStyle}
-          </span>
+    <section role="tabpanel">
+      <div className="card">
+        <div className="card__head">
+          <span className="card__head__title">appearance <span className="accent">/</span> the look of your logr</span>
         </div>
-        <div className="flex gap-1.5">
-          {[preview.accent, preview.card, preview.rule, preview.ink].map((c, i) => (
-            <span key={i} className="h-7 w-7 rounded-full border border-black/10" style={{ background: c }} />
-          ))}
-        </div>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Palette">
-          <Select value={draft.palette} onChange={(e) => set("palette", e.target.value)}>
-            {Object.entries(PALETTES).map(([k, p]) => (
-              <option key={k} value={k}>{p.name}</option>
+        <div className="theme-preview">
+          <div className="theme-preview__copy">
+            <h3 className="theme-preview__name">{p.name}</h3>
+            <p className="theme-preview__sub">{p.note} · {theme.layout}</p>
+          </div>
+          <div className="theme-preview__chips">
+            {[p.ink, p.paper, accent, p.muted].map((c, i) => (
+              <span key={i} className="theme-preview__chip" style={{ background: c }} />
             ))}
-          </Select>
-        </Field>
-        <Field label="Font">
-          <Select value={draft.fonts} onChange={(e) => set("fonts", e.target.value)}>
-            {Object.entries(FONT_PAIRS).map(([k, f]) => (
-              <option key={k} value={k}>{f.name}</option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="Layout">
-          <Select value={draft.postStyle} onChange={(e) => set("postStyle", e.target.value as PostStyle)}>
-            {POST_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </Select>
-        </Field>
-        <Field label="Timeline dot">
-          <Select value={draft.dotStyle} onChange={(e) => set("dotStyle", e.target.value as DotStyle)}>
-            {DOT_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </Select>
-        </Field>
-        <Field label="Photo hover">
-          <Select value={draft.photoHover} onChange={(e) => set("photoHover", e.target.value as PhotoHover)}>
-            {PHOTO_HOVERS.map((s) => <option key={s} value={s}>{s}</option>)}
-          </Select>
-        </Field>
-        <Field label="Accent">
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {ACCENT_SWATCHES.map((c) => (
+          </div>
+        </div>
+
+        {/* palette swatches */}
+        <div className="field">
+          <span className="field__label">palette</span>
+          <div className="opt-grid opt-grid--pal">
+            {Object.entries(PALETTES).map(([key, pal]) => (
               <button
-                key={c}
+                key={key}
                 type="button"
-                onClick={() => set("accentOverride", c)}
-                title={c}
-                className={cn(
-                  "h-7 w-7 rounded-full border-2 transition-transform hover:scale-110",
-                  draft.accentOverride === c ? "border-zinc-900" : "border-transparent"
-                )}
-                style={{ background: c }}
+                className="opt opt--pal"
+                aria-current={theme.palette === key}
+                onClick={() => set("palette", key)}
+              >
+                <span className="opt__chip" style={{ background: pal.paper }}>
+                  <span className="opt__chip__ink" style={{ background: pal.ink }} />
+                  <span className="opt__chip__acc" style={{ background: pal.accent }} />
+                </span>
+                <span className="opt__copy">
+                  <span className="opt__name">{pal.name}</span>
+                  <span className="opt__note">{pal.note}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* layout options with icons + details */}
+        <div className="field">
+          <span className="field__label">default layout</span>
+          <div className="opt-grid opt-grid--lay">
+            {Object.entries(LAYOUTS).map(([key, l]) => (
+              <button
+                key={key}
+                type="button"
+                className="opt opt--lay"
+                aria-current={theme.layout === key}
+                onClick={() => set("layout", key)}
+              >
+                <span className="opt__icon">{LAYOUT_ICONS[key]}</span>
+                <span className="opt__copy">
+                  <span className="opt__name">{l.name}</span>
+                  <span className="opt__note">{l.note}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* accent */}
+        <div className="field">
+          <span className="field__label">accent — your personal colour</span>
+          <div className="swatches">
+            <button
+              type="button"
+              className="sw sw--auto"
+              aria-current={theme.accentOverride === null}
+              title="match palette"
+              onClick={() => set("accentOverride", null)}
+            >
+              auto
+            </button>
+            {ACCENTS.map((a) => (
+              <button
+                key={a.hex}
+                type="button"
+                className="sw"
+                style={{ background: a.hex }}
+                aria-current={theme.accentOverride?.toLowerCase() === a.hex.toLowerCase()}
+                aria-label={a.name}
+                title={a.name}
+                onClick={() => set("accentOverride", a.hex)}
               />
             ))}
           </div>
-        </Field>
-      </div>
+        </div>
 
-      <div className="flex flex-wrap items-center gap-5">
-        <label className="flex items-center gap-2 text-sm text-[var(--ink)]">
-          <input type="checkbox" checked={draft.rounded} onChange={(e) => set("rounded", e.target.checked)} />
-          Rounded corners
-        </label>
-        <label className="flex items-center gap-2 text-sm text-[var(--ink)]">
-          <input type="checkbox" checked={draft.dark} onChange={(e) => set("dark", e.target.checked)} />
-          Dark mode
-        </label>
-        <Button className="ml-auto" onClick={save} disabled={pending}>
-          {pending ? "Saving…" : "Save theme"}
-        </Button>
+        <div className="modal__foot" style={{ marginTop: 36 }}>
+          <button type="button" className="btn btn--primary" onClick={save} disabled={pending}>
+            {pending ? "saving…" : "save theme →"}
+          </button>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

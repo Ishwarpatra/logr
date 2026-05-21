@@ -1,22 +1,12 @@
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PortfolioPage } from "@/components/PortfolioPage";
-import { getProfile, PRIMARY_USERNAME } from "@/lib/profile";
+import { Landing } from "@/components/marketing/Landing";
 
-// Read fresh from the DB on each request so dashboard edits show immediately.
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "logr — log your life",
+  description:
+    "A personal life-log for humans and the machines they raise. One timeline, kept once — a readable page and an exportable llm.txt.",
+};
 
-export async function generateMetadata(): Promise<Metadata> {
-  const profile = await getProfile(PRIMARY_USERNAME);
-  if (!profile) return {};
-  return {
-    title: `${profile.name} — a record, latest first`,
-    description: profile.bio.replace(/\n/g, " "),
-  };
-}
-
-export default async function Home() {
-  const profile = await getProfile(PRIMARY_USERNAME);
-  if (!profile) notFound();
-  return <PortfolioPage profile={profile} />;
+export default function Home() {
+  return <Landing />;
 }

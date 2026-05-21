@@ -1,11 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ImageUploader } from "./ImageUploader";
-import { Field, Input, Textarea, Select } from "@/components/ui/Field";
-import { Button } from "@/components/ui/Button";
-import { Dialog } from "@/components/ui/Dialog";
 import { useToast } from "@/components/ui/Toast";
 import {
   saveHighlightAction,
@@ -15,6 +11,7 @@ import {
 } from "@/lib/actions";
 import { TAG_META } from "@/lib/theme";
 import { isImageIcon } from "@/lib/icon";
+import { uploadImage } from "@/lib/upload";
 
 export type EditableHighlight = {
   id: string;
@@ -33,260 +30,231 @@ export type EditableHighlight = {
 const TAG_OPTIONS = ["work", "milestone", "talk", "side_quest", "writing"];
 
 function emptyDraft(position: number): HighlightInput {
-  return {
-    date: "",
-    year: new Date().getFullYear(),
-    title: "",
-    tag: "work",
-    body: "",
-    icon: null,
-    linkLabel: null,
-    linkHref: null,
-    position,
-    images: [],
-  };
+  return { date: "", year: new Date().getFullYear(), title: "", tag: "work", body: "", icon: null, linkLabel: null, linkHref: null, position, images: [] };
 }
-
 function toDraft(h: EditableHighlight): HighlightInput {
-  return {
-    id: h.id,
-    date: h.date,
-    year: h.year,
-    title: h.title,
-    tag: h.tag,
-    body: h.body,
-    icon: h.icon,
-    linkLabel: h.linkLabel,
-    linkHref: h.linkHref,
-    position: h.position,
-    images: h.images,
-  };
+  return { id: h.id, date: h.date, year: h.year, title: h.title, tag: h.tag, body: h.body, icon: h.icon, linkLabel: h.linkLabel, linkHref: h.linkHref, position: h.position, images: h.images };
 }
+function letter(s: string) { return (s.trim()[0] || "·").toLowerCase(); }
 
-function HighlightDialog({
-  open,
-  initial,
-  onClose,
-  onSaved,
-}: {
-  open: boolean;
-  initial: HighlightInput;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
+// ---------- EDIT / ADD MODAL ----------
+function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput; onClose: () => void; onSaved: (isNew: boolean) => void }) {
   const [draft, setDraft] = useState<HighlightInput>(initial);
   const [pending, start] = useTransition();
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  const iconFileRef = useRef<HTMLInputElement>(null);
+  const photoFileRef = useRef<HTMLInputElement>(null);
 
-  function set<K extends keyof HighlightInput>(k: K, v: HighlightInput[K]) {
-    setDraft((d) => ({ ...d, [k]: v }));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+
+  function set<K extends keyof HighlightInput>(k: K, v: HighlightInput[K]) { setDraft((d) => ({ ...d, [k]: v })); }
+
+  async function uploadIcon(file?: File) {
+    if (!file) return;
+    setBusy(true);
+    try { set("icon", await uploadImage(file)); } catch (e) { toast(e instanceof Error ? e.message : "Upload failed", "error"); } finally { setBusy(false); }
   }
-
+  async function addPhotos(files: FileList | null) {
+    if (!files?.length) return;
+    setBusy(true);
+    try {
+      const room = 4 - draft.images.length;
+      const urls = await Promise.all(Array.from(files).slice(0, room).map(uploadImage));
+      set("images", [...draft.images, ...urls]);
+    } catch (e) { toast(e instanceof Error ? e.message : "Upload failed", "error"); } finally { setBusy(false); }
+  }
   function submit() {
-    start(async () => {
-      await saveHighlightAction(draft);
-      onSaved();
-    });
+    start(async () => { await saveHighlightAction(draft); onSaved(!initial.id); });
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      title={initial.id ? "Edit highlight" : "New highlight"}
-      description="A moment on your timeline — work, a milestone, a talk, a side quest."
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={submit} disabled={pending || !draft.title.trim()}>
-            {pending ? "Saving…" : "Save highlight"}
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        <Field label="Title">
-          <Input autoFocus value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="Built something great" />
-        </Field>
+    <div className="modal" role="dialog" aria-modal="true">
+      <div className="modal__overlay" onClick={onClose} />
+      <div className="modal__card">
+        <button type="button" className="modal__close" onClick={onClose} aria-label="close">×</button>
+        <h2 className="modal__title">{initial.id ? "edit highlight" : "new highlight"}<span className="colon">.</span></h2>
+        <p className="modal__sub">a moment on your timeline — work, a milestone, a talk, a side quest.</p>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Field label="Date" hint="Display text">
-            <Input value={draft.date} onChange={(e) => set("date", e.target.value)} placeholder="Nov 2025" />
-          </Field>
-          <Field label="Year" hint="For sorting">
-            <Input type="number" value={draft.year} onChange={(e) => set("year", Number(e.target.value))} />
-          </Field>
-          <Field label="Tag">
-            <Select value={draft.tag} onChange={(e) => set("tag", e.target.value)}>
-              {TAG_OPTIONS.map((t) => (
-                <option key={t} value={t}>{TAG_META[t]?.label ?? t}</option>
-              ))}
-            </Select>
-          </Field>
+        <div className="field">
+          <label className="field__label">title</label>
+          <input type="text" value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="built something good." autoFocus />
         </div>
 
-        <Field label="Icon" hint="Optional — a logo image or an emoji, shown beside the title">
-          <div className="flex flex-wrap items-center gap-3">
-            <ImageUploader
-              value={isImageIcon(draft.icon) ? [draft.icon] : []}
-              onChange={(u) => set("icon", u[0] ?? null)}
-              max={1}
-            />
-            <span className="text-xs text-[var(--muted)]">or emoji</span>
-            <Input
-              value={isImageIcon(draft.icon) ? "" : draft.icon ?? ""}
-              onChange={(e) => set("icon", e.target.value || null)}
-              placeholder="🏆"
-              maxLength={4}
-              className="w-24"
-            />
+        <div className="field-row field-row--three">
+          <div className="field">
+            <label className="field__label">date</label>
+            <input type="text" value={draft.date} onChange={(e) => set("date", e.target.value)} placeholder="2026.04" />
+            <span className="field__hint">display text</span>
           </div>
-        </Field>
-
-        <Field label="Body">
-          <Textarea rows={3} value={draft.body} onChange={(e) => set("body", e.target.value)} />
-        </Field>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Link label">
-            <Input value={draft.linkLabel ?? ""} onChange={(e) => set("linkLabel", e.target.value || null)} placeholder="see the post" />
-          </Field>
-          <Field label="Link URL">
-            <Input value={draft.linkHref ?? ""} onChange={(e) => set("linkHref", e.target.value || null)} placeholder="https://…" />
-          </Field>
+          <div className="field">
+            <label className="field__label">year</label>
+            <input type="number" value={draft.year} onChange={(e) => set("year", Number(e.target.value))} />
+            <span className="field__hint">for sorting</span>
+          </div>
+          <div className="field">
+            <label className="field__label">tag</label>
+            <select value={draft.tag} onChange={(e) => set("tag", e.target.value)}>
+              {TAG_OPTIONS.map((t) => <option key={t} value={t}>{TAG_META[t]?.label ?? t}</option>)}
+            </select>
+          </div>
         </div>
 
-        <Field label="Photos" hint="Up to 4 — shown as a 1 / 2 / 4 grid">
-          <ImageUploader value={draft.images} onChange={(urls) => set("images", urls)} max={4} />
-        </Field>
+        <div className="field">
+          <span className="field__label">icon</span>
+          <div className="field-icon">
+            <span className="field-icon__preview">
+              {isImageIcon(draft.icon) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={draft.icon} alt="" />
+              ) : (draft.icon || letter(draft.title))}
+            </span>
+            <input type="text" value={isImageIcon(draft.icon) ? "" : draft.icon ?? ""} onChange={(e) => set("icon", e.target.value || null)} placeholder="🏆" maxLength={4} />
+            <span className="field-icon__or" onClick={() => iconFileRef.current?.click()} style={{ cursor: "pointer" }}>
+              or <span style={{ color: "var(--user-accent)" }}>upload a logo</span>
+            </span>
+            <input ref={iconFileRef} type="file" accept="image/*" hidden onChange={(e) => uploadIcon(e.target.files?.[0])} />
+          </div>
+          <span className="field__hint">a letter, an emoji, or a logo image. shown beside the title.</span>
+        </div>
+
+        <div className="field">
+          <label className="field__label">body</label>
+          <textarea rows={4} value={draft.body} onChange={(e) => set("body", e.target.value)} />
+        </div>
+
+        <div className="field-row">
+          <div className="field">
+            <label className="field__label">link label</label>
+            <input type="text" value={draft.linkLabel ?? ""} onChange={(e) => set("linkLabel", e.target.value || null)} placeholder="heysage.me" />
+          </div>
+          <div className="field">
+            <label className="field__label">link url</label>
+            <input type="url" value={draft.linkHref ?? ""} onChange={(e) => set("linkHref", e.target.value || null)} placeholder="https://…" />
+          </div>
+        </div>
+
+        <div className="field">
+          <span className="field__label">photos</span>
+          <div className="field-photos">
+            {draft.images.map((url, i) => (
+              <div key={i} className="field-photos__cell">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" />
+                <button type="button" onClick={() => set("images", draft.images.filter((_, j) => j !== i))} aria-label="remove">×</button>
+              </div>
+            ))}
+            {draft.images.length < 4 && (
+              <button type="button" className="field-photos__add" onClick={() => photoFileRef.current?.click()} disabled={busy}>
+                {busy ? "…" : "+ add"}
+              </button>
+            )}
+            <input ref={photoFileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
+          </div>
+          <span className="field__hint">up to 4 — shown as a 1 / 2 grid</span>
+        </div>
+
+        <div className="modal__foot">
+          <button type="button" className="btn btn--ghost" onClick={onClose}>cancel</button>
+          <button type="button" className="btn btn--primary" onClick={submit} disabled={pending || !draft.title.trim()}>
+            {pending ? "saving…" : "save highlight →"}
+          </button>
+        </div>
       </div>
-    </Dialog>
+    </div>
   );
 }
 
+// ---------- LIST ----------
 export function HighlightsManager({ highlights }: { highlights: EditableHighlight[] }) {
   const router = useRouter();
   const toast = useToast();
-  const [dialog, setDialog] = useState<{ initial: HighlightInput } | null>(null);
+  const [dialog, setDialog] = useState<HighlightInput | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<EditableHighlight | null>(null);
   const [pending, start] = useTransition();
 
-  const nextPosition = highlights.length
-    ? Math.min(...highlights.map((h) => h.position)) - 1
-    : 0;
+  const nextPosition = highlights.length ? Math.min(...highlights.map((h) => h.position)) - 1 : 0;
 
   function move(id: string, dir: "up" | "down") {
-    start(async () => {
-      await moveHighlightAction(id, dir);
-      router.refresh();
-    });
+    start(async () => { await moveHighlightAction(id, dir); router.refresh(); });
   }
-
   function doDelete(h: EditableHighlight) {
-    start(async () => {
-      await deleteHighlightAction(h.id);
-      setConfirmDelete(null);
-      toast("Highlight deleted");
-      router.refresh();
-    });
+    start(async () => { await deleteHighlightAction(h.id); setConfirmDelete(null); toast("Highlight deleted"); router.refresh(); });
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-[var(--muted)]">{highlights.length} highlights · newest first</p>
-        <Button size="sm" variant="accent" onClick={() => setDialog({ initial: emptyDraft(nextPosition) })}>
-          + Add highlight
-        </Button>
+    <section role="tabpanel">
+      <div className="card">
+        <div className="hl-head">
+          <span className="hl-count"><span className="accent">{highlights.length}</span> highlights · newest first</span>
+          <button type="button" className="btn btn--small" onClick={() => setDialog(emptyDraft(nextPosition))}>+ add highlight</button>
+        </div>
+
+        <div className="hl-list">
+          {highlights.map((h, i) => {
+            const accent = h.tag === "milestone";
+            return (
+              <div className="hl-row" key={h.id}>
+                <div className="hl-row__order">
+                  <button aria-label="move up" disabled={i === 0 || pending} onClick={() => move(h.id, "up")}>▲</button>
+                  <button aria-label="move down" disabled={i === highlights.length - 1 || pending} onClick={() => move(h.id, "down")}>▼</button>
+                </div>
+                <div className={`hl-row__thumb ${accent ? "hl-row__thumb--accent" : ""}`}>
+                  {h.images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={h.images[0]} alt="" />
+                  ) : isImageIcon(h.icon) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={h.icon} alt="" />
+                  ) : (h.icon || letter(h.title))}
+                </div>
+                <div className="hl-row__copy">
+                  <span className="hl-row__title">{h.title}</span>
+                  <span className="hl-row__meta">
+                    {h.date} · <span className={accent ? "accent" : undefined}>{TAG_META[h.tag]?.label ?? h.tag}</span>
+                    {h.images.length > 0 && ` · ${h.images.length} photo${h.images.length > 1 ? "s" : ""}`}
+                    {h.linkLabel && ` · ${h.linkLabel}`}
+                  </span>
+                </div>
+                <div className="hl-row__actions">
+                  <button onClick={() => setDialog(toDraft(h))}>edit</button>
+                  <button className="danger" onClick={() => setConfirmDelete(h)}>delete</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <ul className="space-y-2">
-        {highlights.map((h, i) => (
-          <li
-            key={h.id}
-            className="group flex items-center gap-3 rounded-2xl border border-[var(--rule)] bg-[var(--bg)]/40 p-3 transition-colors hover:bg-[var(--card-hover)]"
-          >
-            <div className="flex flex-col">
-              <button
-                onClick={() => move(h.id, "up")}
-                disabled={i === 0 || pending}
-                aria-label="Move up"
-                className="rounded-md p-0.5 text-[var(--muted)] hover:bg-[var(--card-hover)] hover:text-[var(--ink)] disabled:opacity-30"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 10l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </button>
-              <button
-                onClick={() => move(h.id, "down")}
-                disabled={i === highlights.length - 1 || pending}
-                aria-label="Move down"
-                className="rounded-md p-0.5 text-[var(--muted)] hover:bg-[var(--card-hover)] hover:text-[var(--ink)] disabled:opacity-30"
-              >
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </button>
-            </div>
-
-            <span className="hidden h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[var(--rule)] bg-[var(--card)] sm:block">
-              {h.images[0] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={h.images[0]} alt="" className="h-full w-full object-cover" />
-              ) : isImageIcon(h.icon) ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={h.icon} alt="" className="h-full w-full object-contain p-1.5" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-base text-[var(--muted)] opacity-70">
-                  {h.icon || TAG_META[h.tag]?.emoji || "•"}
-                </span>
-              )}
-            </span>
-
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-[var(--ink)]">{h.title}</p>
-              <p className="truncate text-xs text-[var(--muted)]">
-                {h.date} · {TAG_META[h.tag]?.label ?? h.tag}
-                {h.images.length > 0 && ` · ${h.images.length} photo${h.images.length > 1 ? "s" : ""}`}
-              </p>
-            </div>
-
-            <div className="flex shrink-0 gap-1.5">
-              <Button size="sm" variant="secondary" onClick={() => setDialog({ initial: toDraft(h) })}>
-                Edit
-              </Button>
-              <Button size="sm" variant="danger" onClick={() => setConfirmDelete(h)}>
-                Delete
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
-
       {dialog && (
-        <HighlightDialog
-          open
-          initial={dialog.initial}
+        <HighlightModal
+          initial={dialog}
           onClose={() => setDialog(null)}
-          onSaved={() => {
-            setDialog(null);
-            toast(dialog.initial.id ? "Highlight updated" : "Highlight added");
-            router.refresh();
-          }}
+          onSaved={(isNew) => { setDialog(null); toast(isNew ? "Highlight added" : "Highlight updated"); router.refresh(); }}
         />
       )}
 
-      <Dialog
-        open={!!confirmDelete}
-        onClose={() => setConfirmDelete(null)}
-        title="Delete highlight?"
-        description={confirmDelete ? `“${confirmDelete.title}” will be permanently removed.` : ""}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancel</Button>
-            <Button variant="danger" disabled={pending} onClick={() => confirmDelete && doDelete(confirmDelete)}>
-              {pending ? "Deleting…" : "Delete"}
-            </Button>
-          </>
-        }
-      >
-        <p className="text-sm text-[var(--muted)]">This can&apos;t be undone.</p>
-      </Dialog>
-    </div>
+      {confirmDelete && (
+        <div className="modal" role="dialog" aria-modal="true">
+          <div className="modal__overlay" onClick={() => setConfirmDelete(null)} />
+          <div className="modal__card" style={{ maxWidth: 420 }}>
+            <h2 className="modal__title">delete highlight<span className="colon">?</span></h2>
+            <p className="modal__sub">“{confirmDelete.title}” will be permanently removed. this can&apos;t be undone.</p>
+            <div className="modal__foot">
+              <button type="button" className="btn btn--ghost" onClick={() => setConfirmDelete(null)}>cancel</button>
+              <button type="button" className="btn btn--primary" disabled={pending} onClick={() => doDelete(confirmDelete)}>
+                {pending ? "deleting…" : "delete →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }

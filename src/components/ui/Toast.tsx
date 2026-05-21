@@ -25,6 +25,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [mounted, setMounted] = useState(false);
   const vars = useStyleVars();
+  // Client-only mount gate so the portal isn't rendered during SSR (avoids a
+  // hydration mismatch). Setting state once on mount is the intended pattern.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   const toast = useCallback((message: string, kind: ToastKind = "success") => {

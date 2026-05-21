@@ -1,18 +1,9 @@
 import Portfolio from "@/components/Portfolio";
-import { themeCssVars } from "@/lib/theme";
 import type { ProfileDTO } from "@/lib/profile";
 
-/** Server wrapper: inlines the theme's CSS variables (no flash) then renders
- *  the client timeline. Shared by the homepage and the /[username] route. */
+/** Server wrapper for the public timeline. The client component owns the
+ *  themed `.logr` root (palette CSS vars + data-layout), so SSR is themed
+ *  with no flash. Shared by the homepage and /[username]. */
 export function PortfolioPage({ profile }: { profile: ProfileDTO }) {
-  const cssVars = Object.entries(themeCssVars(profile.theme))
-    .map(([k, v]) => `${k}:${v}`)
-    .join(";");
-
-  return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: `:root{${cssVars}}` }} />
-      <Portfolio profile={profile} />
-    </>
-  );
+  return <Portfolio profile={profile} />;
 }

@@ -1,7 +1,19 @@
 @import "tailwindcss";
 
-/* Portfolio design system, ported verbatim from design/portfolio.css.
-   Imported after Tailwind so the bespoke timeline styles take precedence.
-   The CSS variables it consumes (--bg, --ink, --accent, --font-*, …) are
-   injected per-request from the active theme — see ThemeStyle. */
+/* logr design system — editorial serif. Both stylesheets are scoped
+   (.logr for the public timeline, .dash for the dashboard) and consume
+   palette CSS variables injected per-profile on their root element. */
 @import "./portfolio.css";
+@import "./dashboard.css";
+@import "./marketing.css";
+
+/* logr brand mark — two stacked asymmetric dots, sized by font-size.
+   Lives in any themed scope (.logr/.dash/.mkt) and reads its accent/ink vars. */
+.mark { display: inline-flex; flex-direction: column; align-items: center; gap: 0.18em; line-height: 1; flex-shrink: 0; }
+.mark .d-top, .mark .d-bot { display: block; border-radius: 50%; }
+.mark .d-top { width: 0.34em; height: 0.34em; background: var(--user-accent); }
+.mark .d-bot { width: 0.2em; height: 0.2em; background: var(--ink); }
+/* brand lockups: mark to the left of the wordmark */
+.bar__brand, .foot .brand, .foot__wm, .foot__bottom .brand, .hero__wordmark { display: inline-flex; align-items: center; gap: 0.32em; }
+.dash .bar__brand a, .login-brand { display: inline-flex; align-items: center; gap: 0.32em; }
+.hero__wordmark { gap: 0.1em; }

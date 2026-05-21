@@ -20,48 +20,47 @@ The intersection of three growing trends — personal branding for builders, AI-
 
 ---
 
-## The design (from the handoff)
+## The design (editorial-serif rebrand)
 
-The product UI is a **modern timeline / social feed**: a centered single-column profile header followed by a reverse-chronological, year-grouped timeline of highlights, an "About" section, and a footer. Keyboard navigation (`j`/`k`, `g`/`G`) scrolls between entries.
+logr is an **editorial life-log**: a top bar with the `logr:` colon mark, a large serif profile header, a "now /" line, a year-grouped `.entry` timeline whose **dots scale by recency** (recent = larger + accent, older recedes), a colophon, and an `llm.txt` link. The signature mark is the colon — *two dots, asymmetric: present : past*. Entries are compact by default and **expand on hover** (date + icon + title → body, link, photos).
 
-The design ships a live **theming system** — these are the customization knobs each portfolio owner gets, not just build-time choices.
+Each portfolio owner picks a **palette** and a **layout**; visitors can preview locally via a floating picker (persisted to `localStorage`).
 
-### Palettes (9 + dark)
+### Palettes (9, incl. a dark one)
 
-`paper` (warm), `arctic` (white), `ink` (dark), `mono` (greyscale), `citrus` (warm bright), `sunset` (peach), `forest` (sage), `ocean` (blue), `lavender` (purple). A dark mode swaps to the `ink` base while preserving the chosen accent. Each palette defines: `bg`, `card`, `cardHover`, `ink`, `muted`, `rule`, `accent`, `chipBg/Fg`, `tagBg/Fg`.
+`paper` (brand default), `sepia`, `arctic`, `mono`, `citrus`, `forest`, `ocean`, `lavender`, `ink` (dark). Each is a token set — `paper`, `ink`, `accent`, `muted`, `faint` — with `--rule`/`--rule-strong` derived as ink alphas. The personal accent (`--user-accent`) is independently overridable.
 
-Accent is independently overridable from a swatch set: `#c5532f #2d4cf5 #e8b340 #3e6b4a #d8631f #7a4ee0 #1a73c4 #e25a3c #0d0d0c`.
+### Typography
 
-### Typography (4 pairs)
+**Source Serif 4** (body + display, with italics for bios/icons) and **JetBrains Mono** (dates, handle, tags, machine block). One type system across every layout.
 
-- **Modern** — Geist
-- **Friendly** — Outfit
-- **Expressive** — Bricolage Grotesque (display) + Inter Tight (body)
-- **Classic** — Inter Tight
+### Layouts (8)
 
-Monospace is Geist Mono throughout (used for dates, handle, year pills, footer).
-
-### Layout styles (6)
-
-`feed` (default), `card` (elevated), `centered` (alternating sides), `terminal` (monospace, `$ whoami`, `> title`, `#tag`), `polaroid` (rotated scrapbook cards, photos-first), `magazine` (editorial, large display titles, drop-cap body, photos-first).
-
-### Other knobs
-
-- **Dot style:** circle · square · icon (tag emoji)
-- **Photo hover:** lift · zoom · none
-- **Rounded corners:** on/off (`--radius` 14px/4px)
+- **`timeline`** — NEW default: rail + recency-scaled dots, hover-to-expand
+- **`journal`** — date in the margin, no rail
+- **`magazine`** — image-led, big titles, drop-cap body
+- **`terminal`** — mono, `$ whoami`, `> title`, `#tag`, ascii rail
+- **`feed`** · **`card`** · **`centered`** · **`polaroid`** — the original layouts, kept and **re-skinned** into the serif brand as `[data-layout]` reshapes of the same `.entry` markup
 
 ### Default theme
 
-The prototype shipped with `magazine` layout; logr defaults to the simpler `feed` layout (closer to a social timeline) while keeping the lavender palette. All six layouts remain selectable per portfolio.
-
 ```js
-{ palette: "lavender", fonts: "expressive", rounded: true,
-  accentOverride: "#c5532f", postStyle: "feed",
-  dotStyle: "circle", photoHover: "zoom", dark: false }
+{ palette: "paper", layout: "timeline", accentOverride: null }
 ```
 
-> The prototype lives in `design/` (HTML/CSS/JS from Claude Design). It is the **source of truth for visual output** — recreate it pixel-perfectly in the production stack; don't copy its internal structure.
+> The handoff lives in `design/` (`logr.html` marketing, `dashboard.html`, `koshik.html` user page, `theme.js`, `Brand Kit.html`). It is the **source of truth for visual output**.
+>
+> **Rebrand status: complete.** The theme system, 8 layouts, user page (`.logr`), dashboard (`.dash`), and marketing landing (`.mkt`) are all implemented in the new editorial brand. Each surface has its own scoped stylesheet driven by the same palette tokens.
+
+## Routes
+
+| Route | What |
+|-------|------|
+| `/` | Marketing landing (logr brand) |
+| `/[username]` | Public timeline (e.g. `/koshik`) |
+| `/[username]/llm.txt` | Machine-readable context file |
+| `/admin` | Owner dashboard (auth-gated) — profile · appearance · highlights |
+| `/login` | Single-user sign-in |
 
 ---
 
@@ -144,7 +143,9 @@ Derived directly from the prototype's `HIGHLIGHTS`, `TAG_META`, and profile data
 | Auth | Single-user (P1) → Clerk (P2) | Fastest path now; multi-user + custom domains later |
 | Image storage | AWS S3 (local FS in dev) | Durable object storage; optional CloudFront CDN |
 | AI | Anthropic Claude API | Structured extraction + conversational RAG |
-| Styling | Tailwind + shadcn/ui | Fast, clean, minimal |
+| Fonts | Source Serif 4 + JetBrains Mono | Editorial serif identity |
+| Styling | Tailwind + scoped `portfolio.css` | Admin in Tailwind; public timeline in `.logr`-scoped CSS |
+| Animation | Framer Motion | Subtle scroll-in + lightbox transitions |
 | Hosting | Vercel | Custom domains, edge functions, zero config |
 | Vector store | pgvector (Supabase) | No extra infra |
 

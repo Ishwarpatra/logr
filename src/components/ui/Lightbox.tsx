@@ -64,7 +64,6 @@ export function Lightbox({
       </button>
 
       <AnimatePresence initial={false} custom={dir} mode="wait">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <motion.img
           key={index}
           src={images[index]}
