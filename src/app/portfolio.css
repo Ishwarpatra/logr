@@ -60,6 +60,16 @@
 .bar__util a:hover, .bar__util button:hover { color: var(--ink); border-color: var(--ink); }
 .bar__util .accent { color: var(--user-accent); }
 
+/* secondary bar actions (share / llm.txt / about) as readable hairline pills */
+.logr .bar__util { gap: 8px; }
+.logr .bar__util a, .logr .bar__util button:not(.bar__ask) {
+  color: var(--ink); padding: 6px 13px; border: 0.5px solid var(--rule-strong); border-radius: 8px;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+.logr .bar__util a:hover, .logr .bar__util button:not(.bar__ask):hover {
+  color: var(--paper); background: var(--ink); border-color: var(--ink);
+}
+
 /* ---------- profile ---------- */
 /* a compact, self-contained, shareable profile card — separated from the timeline */
 .profile {
@@ -563,29 +573,22 @@
 /* ============================================================
    ASK — visitor chat widget (grounded in the log)
    ============================================================ */
-/* trigger lives in the top bar, next to llm.txt — an underline with a moving highlight */
-.bar__ask {
-  position: relative;
+/* the ask trigger — the primary action, so it carries the brand accent;
+   same pill shape as the others. the label types in a loop. */
+.logr .bar__ask {
   display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--ink);
-  padding: 6px 4px 8px;
-  transition: color 160ms ease;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em;
+  color: var(--paper); background: var(--user-accent); border: 0.5px solid var(--user-accent); border-radius: 8px;
+  padding: 6px 13px; transition: opacity 160ms ease;
 }
-.bar__ask svg { display: block; color: var(--user-accent); }
-/* faint static underline */
-.bar__ask::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
-  background: color-mix(in srgb, var(--user-accent) 22%, transparent);
-}
-/* a bright segment that slides left→right along the bottom */
-.bar__ask::before {
-  content: ""; position: absolute; bottom: 0; left: 0; width: 40%; height: 1.5px; z-index: 1;
-  background: linear-gradient(90deg, transparent, var(--user-accent), transparent);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .bar__ask::before { animation: ask-slide 2.4s ease-in-out infinite; }
-}
-@keyframes ask-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+.logr .bar__ask:hover { opacity: 0.92; }
+.logr .bar__ask > svg { display: block; color: var(--paper); }
+/* typewriter label */
+.logr .type { position: relative; display: inline-block; }
+.logr .type__ghost { visibility: hidden; }
+.logr .type__live { position: absolute; left: 0; top: 0; white-space: nowrap; }
+.logr .type__caret { display: inline-block; width: 1px; height: 1.05em; background: var(--paper); margin-left: 1px; vertical-align: -0.15em; animation: type-blink 1.05s steps(1) infinite; }
+@keyframes type-blink { 50% { opacity: 0; } }
 
 /* centered modal window */
 .ask__scrim {
@@ -617,10 +620,11 @@
 .ask__empty { color: var(--muted); font-family: var(--serif); font-size: 15px; line-height: 1.5; }
 .ask__suggest { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
 .ask__suggest button {
-  text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; color: var(--user-accent);
-  border: 0.5px solid var(--rule); border-radius: 8px; padding: 8px 10px; transition: border-color 140ms ease;
+  text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; color: var(--ink);
+  border: 0.5px solid var(--rule-strong); border-radius: 8px; padding: 8px 14px;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
-.ask__suggest button:hover { border-color: var(--user-accent); }
+.ask__suggest button:hover { color: var(--paper); background: var(--ink); border-color: var(--ink); }
 .ask__msg { font-family: var(--serif); font-size: 14.5px; line-height: 1.5; max-width: 90%; white-space: pre-wrap; }
 .ask__msg--user {
   align-self: flex-end; background: var(--user-accent); color: var(--paper);
@@ -644,9 +648,59 @@
   transition: border-color 160ms ease;
 }
 .ask__form input:focus { border-color: var(--user-accent); }
+/* send — the primary action, brand accent */
 .ask__form button {
-  flex-shrink: 0; width: 38px; border-radius: 10px; background: var(--ink); color: var(--paper);
-  font-size: 16px; transition: opacity 140ms ease;
+  flex-shrink: 0; width: 40px; border-radius: 8px; border: 0.5px solid var(--user-accent);
+  background: var(--user-accent); color: var(--paper); font-size: 16px;
+  transition: opacity 160ms ease;
 }
+.ask__form button:hover:not(:disabled) { opacity: 0.92; }
 .ask__form button:disabled { opacity: 0.4; }
 @media (max-width: 540px) { .ask__scrim { padding: 12px; } .ask__panel { height: calc(100dvh - 24px); } }
+
+/* ============================================================
+   SHARE — modal with the human URL, the agent llm.txt URL + prompt
+   ============================================================ */
+.share__scrim {
+  position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(20, 18, 14, 0.34); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  animation: ask-scrim 160ms ease;
+}
+.share {
+  position: relative; width: min(520px, 100%); max-height: calc(100dvh - 96px); overflow-y: auto;
+  background: var(--paper); border: 0.5px solid var(--rule-strong); border-radius: 16px;
+  box-shadow: 0 40px 90px -30px rgba(0,0,0,0.5); animation: ask-in 180ms cubic-bezier(.2,.8,.2,1);
+}
+.share__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 0.5px solid var(--rule);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--muted);
+}
+.share__head .accent { color: var(--user-accent); }
+.share__head button { font-family: var(--serif); font-size: 18px; color: var(--muted); line-height: 1; padding: 0 4px; }
+.share__head button:hover { color: var(--ink); }
+.share__body { padding: 20px 18px; display: flex; flex-direction: column; gap: 24px; }
+.share__block { display: flex; flex-direction: column; gap: 8px; }
+.share__label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+.share__label .accent { color: var(--user-accent); }
+.share__row { display: flex; gap: 8px; }
+.share__row input {
+  flex: 1; min-width: 0; font-family: var(--mono); font-size: 12px; color: var(--ink); background: transparent;
+  border: 0.5px solid var(--rule-strong); border-radius: 9px; padding: 9px 12px; outline: none;
+}
+.share__row input:focus { border-color: var(--user-accent); }
+/* copy — the primary action, brand accent */
+.share__row button, .share__prompt button {
+  flex-shrink: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--paper);
+  background: var(--user-accent); border: 0.5px solid var(--user-accent); border-radius: 8px; padding: 8px 14px;
+  transition: opacity 160ms ease;
+}
+.share__row button:hover, .share__prompt button:hover { opacity: 0.92; }
+.share__note { font-family: var(--serif); font-style: italic; font-size: 13.5px; line-height: 1.45; color: var(--muted); }
+.share__note .accent { color: var(--user-accent); font-style: normal; }
+.share__prompt {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px;
+  border: 0.5px solid var(--rule); border-radius: 10px; background: color-mix(in srgb, var(--ink) 3%, var(--paper));
+}
+.share__prompt code { flex: 1; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; color: var(--ink); }
+@media (max-width: 540px) { .share__scrim { padding: 12px; } .share__prompt { flex-direction: column; } }

@@ -17,6 +17,8 @@ import { Lightbox } from "@/components/ui/Lightbox";
 import { Mark } from "@/components/Mark";
 import { LAYOUT_ICONS } from "@/components/layout-icons";
 import { ChatWidget } from "@/components/ChatWidget";
+import { ShareModal } from "@/components/ShareModal";
+import { TypingLabel } from "@/components/TypingLabel";
 
 const EASE = [0.2, 0.8, 0.2, 1] as [number, number, number, number];
 const VIEWPORT = { once: true, amount: 0.2, margin: "0px 0px -6% 0px" } as const;
@@ -241,6 +243,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
     profile.events.some((e) => e.featured) ? "highlights" : "all"
   );
   const [chatOpen, setChatOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const palette = preview.palette ?? profile.theme.palette;
@@ -348,11 +351,11 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
                     <line x1="8" y1="3" x2="8" y2="5.5" strokeLinecap="round" />
                     <circle cx="8" cy="2.4" r="1" fill="currentColor" stroke="none" />
                   </svg>
-                  ask me anything
+                  <TypingLabel text="ask me anything" />
                 </button>
               )}
+              <button type="button" onClick={() => setShareOpen(true)}>share</button>
               <a href={`/${profile.username}/llm.txt`}>llm.txt</a>
-              <a href="#colophon">about</a>
             </nav>
           </header>
 
@@ -465,6 +468,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
         {chatEnabled && (
           <ChatWidget username={profile.username} name={profile.name} open={chatOpen} onClose={() => setChatOpen(false)} />
         )}
+        <ShareModal username={profile.username} name={profile.name} open={shareOpen} onClose={() => setShareOpen(false)} />
       </div>
     </MotionConfig>
   );
