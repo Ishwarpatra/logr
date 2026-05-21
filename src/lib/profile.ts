@@ -3,12 +3,13 @@ import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 
 export type Social = { label: string; href: string };
 
-export type HighlightDTO = {
+export type EventDTO = {
   id: string;
   date: string;
   year: number;
   title: string;
-  tag: string;
+  tags: string[];
+  featured: boolean; // shown in the page's "highlights" view
   body: string;
   icon: string | null; // optional glyph/emoji for the timeline dot
   link: { label: string; href: string } | null;
@@ -27,7 +28,7 @@ export type ProfileDTO = {
   avatarUrl: string | null;
   socials: Social[];
   theme: Theme;
-  highlights: HighlightDTO[];
+  events: EventDTO[];
 };
 
 function parseJSON<T>(value: string, fallback: T): T {
@@ -42,7 +43,7 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
   const row = await prisma.profile.findUnique({
     where: { username },
     include: {
-      highlights: {
+      events: {
         orderBy: { position: "asc" },
         include: { images: { orderBy: { position: "asc" } } },
       },
@@ -62,16 +63,17 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
     avatarUrl: row.avatarUrl,
     socials: parseJSON<Social[]>(row.socials, []),
     theme: { ...DEFAULT_THEME, ...parseJSON<Partial<Theme>>(row.theme, {}) },
-    highlights: row.highlights.map((h) => ({
-      id: h.id,
-      date: h.date,
-      year: h.year,
-      title: h.title,
-      tag: h.tag,
-      body: h.body,
-      icon: h.icon,
-      link: h.linkHref ? { label: h.linkLabel ?? h.linkHref, href: h.linkHref } : null,
-      images: h.images.map((img) => img.url).filter((u): u is string => !!u),
+    events: row.events.map((e) => ({
+      id: e.id,
+      date: e.date,
+      year: e.year,
+      title: e.title,
+      tags: e.tags,
+      featured: e.featured,
+      body: e.body,
+      icon: e.icon,
+      link: e.linkHref ? { label: e.linkLabel ?? e.linkHref, href: e.linkHref } : null,
+      images: e.images.map((img) => img.url).filter((u): u is string => !!u),
     })),
   };
 }

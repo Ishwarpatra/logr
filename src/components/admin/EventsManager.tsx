@@ -5,21 +5,22 @@ import { useRouter } from "next/navigation";
 import { Reorder, useDragControls } from "framer-motion";
 import { useToast } from "@/components/ui/Toast";
 import {
-  saveHighlightAction,
-  deleteHighlightAction,
-  reorderHighlightsAction,
-  type HighlightInput,
+  saveEventAction,
+  deleteEventAction,
+  reorderEventsAction,
+  type EventInput,
 } from "@/lib/actions";
 import { TAG_META } from "@/lib/theme";
 import { isImageIcon } from "@/lib/icon";
 import { uploadImage } from "@/lib/upload";
 
-export type EditableHighlight = {
+export type EditableEvent = {
   id: string;
   date: string;
   year: number;
   title: string;
-  tag: string;
+  tags: string[];
+  featured: boolean;
   body: string;
   icon: string | null;
   linkLabel: string | null;
@@ -30,17 +31,17 @@ export type EditableHighlight = {
 
 const TAG_OPTIONS = ["work", "milestone", "talk", "side_quest", "writing"];
 
-function emptyDraft(position: number): HighlightInput {
-  return { date: "", year: new Date().getFullYear(), title: "", tag: "work", body: "", icon: null, linkLabel: null, linkHref: null, position, images: [] };
+function emptyDraft(position: number): EventInput {
+  return { date: "", year: new Date().getFullYear(), title: "", tags: ["work"], featured: true, body: "", icon: null, linkLabel: null, linkHref: null, position, images: [] };
 }
-function toDraft(h: EditableHighlight): HighlightInput {
-  return { id: h.id, date: h.date, year: h.year, title: h.title, tag: h.tag, body: h.body, icon: h.icon, linkLabel: h.linkLabel, linkHref: h.linkHref, position: h.position, images: h.images };
+function toDraft(e: EditableEvent): EventInput {
+  return { id: e.id, date: e.date, year: e.year, title: e.title, tags: e.tags, featured: e.featured, body: e.body, icon: e.icon, linkLabel: e.linkLabel, linkHref: e.linkHref, position: e.position, images: e.images };
 }
 function letter(s: string) { return (s.trim()[0] || "·").toLowerCase(); }
 
 // ---------- EDIT / ADD MODAL ----------
-function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput; onClose: () => void; onSaved: (isNew: boolean) => void }) {
-  const [draft, setDraft] = useState<HighlightInput>(initial);
+function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClose: () => void; onSaved: (isNew: boolean) => void }) {
+  const [draft, setDraft] = useState<EventInput>(initial);
   const [pending, start] = useTransition();
   const [busy, setBusy] = useState(false);
   const toast = useToast();
@@ -55,7 +56,10 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [onClose]);
 
-  function set<K extends keyof HighlightInput>(k: K, v: HighlightInput[K]) { setDraft((d) => ({ ...d, [k]: v })); }
+  function set<K extends keyof EventInput>(k: K, v: EventInput[K]) { setDraft((d) => ({ ...d, [k]: v })); }
+  function toggleTag(t: string) {
+    set("tags", draft.tags.includes(t) ? draft.tags.filter((x) => x !== t) : [...draft.tags, t]);
+  }
 
   async function uploadIcon(file?: File) {
     if (!file) return;
@@ -72,7 +76,7 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
     } catch (e) { toast(e instanceof Error ? e.message : "Upload failed", "error"); } finally { setBusy(false); }
   }
   function submit() {
-    start(async () => { await saveHighlightAction(draft); onSaved(!initial.id); });
+    start(async () => { await saveEventAction(draft); onSaved(!initial.id); });
   }
 
   return (
@@ -80,7 +84,7 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
       <div className="modal__overlay" onClick={onClose} />
       <div className="modal__card">
         <button type="button" className="modal__close" onClick={onClose} aria-label="close">×</button>
-        <h2 className="modal__title">{initial.id ? "edit highlight" : "new highlight"}<span className="colon">.</span></h2>
+        <h2 className="modal__title">{initial.id ? "edit event" : "new event"}<span className="colon">.</span></h2>
         <p className="modal__sub">a moment on your timeline — work, a milestone, a talk, a side quest.</p>
 
         <div className="field">
@@ -88,7 +92,7 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
           <input type="text" value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="built something good." autoFocus />
         </div>
 
-        <div className="field-row field-row--three">
+        <div className="field-row">
           <div className="field">
             <label className="field__label">date</label>
             <input type="text" value={draft.date} onChange={(e) => set("date", e.target.value)} placeholder="2026.04" />
@@ -99,13 +103,25 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
             <input type="number" value={draft.year} onChange={(e) => set("year", Number(e.target.value))} />
             <span className="field__hint">for sorting</span>
           </div>
-          <div className="field">
-            <label className="field__label">tag</label>
-            <select value={draft.tag} onChange={(e) => set("tag", e.target.value)}>
-              {TAG_OPTIONS.map((t) => <option key={t} value={t}>{TAG_META[t]?.label ?? t}</option>)}
-            </select>
-          </div>
         </div>
+
+        <div className="field">
+          <span className="field__label">tags</span>
+          <div className="tag-pick">
+            {TAG_OPTIONS.map((t) => (
+              <button key={t} type="button" className="tag-pick__chip" aria-pressed={draft.tags.includes(t)} onClick={() => toggleTag(t)}>
+                {TAG_META[t]?.label ?? t}
+              </button>
+            ))}
+          </div>
+          <span className="field__hint">pick one or more</span>
+        </div>
+
+        <label className="check">
+          <input type="checkbox" checked={draft.featured} onChange={(e) => set("featured", e.target.checked)} />
+          <span className="check__box" />
+          <span>include in highlights <span className="field__hint">— shown by default on your page</span></span>
+        </label>
 
         <div className="field">
           <span className="field__label">icon</span>
@@ -164,7 +180,7 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
         <div className="modal__foot">
           <button type="button" className="btn btn--ghost" onClick={onClose}>cancel</button>
           <button type="button" className="btn btn--primary" onClick={submit} disabled={pending || !draft.title.trim()}>
-            {pending ? "saving…" : "save highlight →"}
+            {pending ? "saving…" : "save event →"}
           </button>
         </div>
       </div>
@@ -172,24 +188,24 @@ function HighlightModal({ initial, onClose, onSaved }: { initial: HighlightInput
   );
 }
 
-// ---------- LIST ----------
 // ---------- DRAGGABLE ROW ----------
-function HighlightRow({
-  h,
+function EventRow({
+  e,
   onEdit,
   onDelete,
   onCommit,
 }: {
-  h: EditableHighlight;
+  e: EditableEvent;
   onEdit: () => void;
   onDelete: () => void;
   onCommit: () => void;
 }) {
   const controls = useDragControls();
-  const accent = h.tag === "milestone";
+  const accent = e.tags.includes("milestone");
+  const tagLabels = e.tags.map((t) => TAG_META[t]?.label ?? t).join(", ");
   return (
     <Reorder.Item
-      value={h}
+      value={e}
       as="div"
       className="hl-row"
       dragListener={false}
@@ -201,27 +217,27 @@ function HighlightRow({
         type="button"
         className="hl-row__handle"
         aria-label="drag to reorder"
-        onPointerDown={(e) => controls.start(e)}
+        onPointerDown={(ev) => controls.start(ev)}
       >
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
           <circle cx="6" cy="3" r="1.3" /><circle cx="10" cy="3" r="1.3" /><circle cx="6" cy="8" r="1.3" /><circle cx="10" cy="8" r="1.3" /><circle cx="6" cy="13" r="1.3" /><circle cx="10" cy="13" r="1.3" />
         </svg>
       </button>
       <div className={`hl-row__thumb ${accent ? "hl-row__thumb--accent" : ""}`}>
-        {h.images[0] ? (
+        {e.images[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={h.images[0]} alt="" />
-        ) : isImageIcon(h.icon) ? (
+          <img src={e.images[0]} alt="" />
+        ) : isImageIcon(e.icon) ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={h.icon} alt="" />
-        ) : (h.icon || letter(h.title))}
+          <img src={e.icon} alt="" />
+        ) : (e.icon || letter(e.title))}
       </div>
       <div className="hl-row__copy">
-        <span className="hl-row__title">{h.title}</span>
+        <span className="hl-row__title">{e.title}{e.featured && <span className="hl-row__star" title="in highlights"> ★</span>}</span>
         <span className="hl-row__meta">
-          {h.date} · <span className={accent ? "accent" : undefined}>{TAG_META[h.tag]?.label ?? h.tag}</span>
-          {h.images.length > 0 && ` · ${h.images.length} photo${h.images.length > 1 ? "s" : ""}`}
-          {h.linkLabel && ` · ${h.linkLabel}`}
+          {e.date} · <span className={accent ? "accent" : undefined}>{tagLabels}</span>
+          {e.images.length > 0 && ` · ${e.images.length} photo${e.images.length > 1 ? "s" : ""}`}
+          {e.linkLabel && ` · ${e.linkLabel}`}
         </span>
       </div>
       <div className="hl-row__actions">
@@ -232,50 +248,51 @@ function HighlightRow({
   );
 }
 
-export function HighlightsManager({ highlights }: { highlights: EditableHighlight[] }) {
+export function EventsManager({ events }: { events: EditableEvent[] }) {
   const router = useRouter();
   const toast = useToast();
-  const [dialog, setDialog] = useState<HighlightInput | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<EditableHighlight | null>(null);
+  const [dialog, setDialog] = useState<EventInput | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<EditableEvent | null>(null);
   const [pending, start] = useTransition();
 
   // Local order for drag-and-drop; resynced from props when the set/order changes.
-  const [items, setItems] = useState(highlights);
-  const sig = highlights.map((h) => h.id).join(",");
+  const [items, setItems] = useState(events);
+  const sig = events.map((e) => e.id).join(",");
   const [prevSig, setPrevSig] = useState(sig);
   if (sig !== prevSig) {
     setPrevSig(sig);
-    setItems(highlights);
+    setItems(events);
   }
 
-  const nextPosition = items.length ? Math.min(...items.map((h) => h.position)) - 1 : 0;
+  const nextPosition = items.length ? Math.min(...items.map((e) => e.position)) - 1 : 0;
+  const featuredCount = items.filter((e) => e.featured).length;
 
   function commitOrder() {
     const order = items.map((i) => i.id);
     start(async () => {
-      await reorderHighlightsAction(order);
+      await reorderEventsAction(order);
       toast("Order saved");
     });
   }
-  function doDelete(h: EditableHighlight) {
-    start(async () => { await deleteHighlightAction(h.id); setConfirmDelete(null); toast("Highlight deleted"); router.refresh(); });
+  function doDelete(e: EditableEvent) {
+    start(async () => { await deleteEventAction(e.id); setConfirmDelete(null); toast("Event deleted"); router.refresh(); });
   }
 
   return (
     <section role="tabpanel">
       <div className="card">
         <div className="hl-head">
-          <span className="hl-count"><span className="accent">{items.length}</span> highlights · drag to reorder</span>
-          <button type="button" className="btn btn--small" onClick={() => setDialog(emptyDraft(nextPosition))}>+ add highlight</button>
+          <span className="hl-count"><span className="accent">{items.length}</span> events · <span className="accent">{featuredCount}</span> in highlights · drag to reorder</span>
+          <button type="button" className="btn btn--small" onClick={() => setDialog(emptyDraft(nextPosition))}>+ add event</button>
         </div>
 
         <Reorder.Group as="div" axis="y" values={items} onReorder={setItems} className="hl-list">
-          {items.map((h) => (
-            <HighlightRow
-              key={h.id}
-              h={h}
-              onEdit={() => setDialog(toDraft(h))}
-              onDelete={() => setConfirmDelete(h)}
+          {items.map((e) => (
+            <EventRow
+              key={e.id}
+              e={e}
+              onEdit={() => setDialog(toDraft(e))}
+              onDelete={() => setConfirmDelete(e)}
               onCommit={commitOrder}
             />
           ))}
@@ -283,10 +300,10 @@ export function HighlightsManager({ highlights }: { highlights: EditableHighligh
       </div>
 
       {dialog && (
-        <HighlightModal
+        <EventModal
           initial={dialog}
           onClose={() => setDialog(null)}
-          onSaved={(isNew) => { setDialog(null); toast(isNew ? "Highlight added" : "Highlight updated"); router.refresh(); }}
+          onSaved={(isNew) => { setDialog(null); toast(isNew ? "Event added" : "Event updated"); router.refresh(); }}
         />
       )}
 
@@ -294,7 +311,7 @@ export function HighlightsManager({ highlights }: { highlights: EditableHighligh
         <div className="modal" role="dialog" aria-modal="true">
           <div className="modal__overlay" onClick={() => setConfirmDelete(null)} />
           <div className="modal__card" style={{ maxWidth: 420 }}>
-            <h2 className="modal__title">delete highlight<span className="colon">?</span></h2>
+            <h2 className="modal__title">delete event<span className="colon">?</span></h2>
             <p className="modal__sub">“{confirmDelete.title}” will be permanently removed. this can&apos;t be undone.</p>
             <div className="modal__foot">
               <button type="button" className="btn btn--ghost" onClick={() => setConfirmDelete(null)}>cancel</button>

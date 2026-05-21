@@ -29,24 +29,25 @@ model Profile {
   socials   String // JSON: [{ label, href }]
   theme     String // JSON: { palette, fonts, rounded, accentOverride, postStyle, dotStyle, photoHover, dark }
 
-  highlights   Highlight[]
+  events       Event[]
   chatMessages ChatMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Highlight {
+model Event {
   id        String  @id @default(cuid())
   profileId String
   profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  date  String // display string, e.g. "Nov 2025" or "2014 — 2016"
-  year  Int // for year grouping
-  title String
-  tag   String // work | milestone | talk | side_quest | writing
-  body  String
-  icon  String? // optional glyph/emoji shown on the timeline dot
+  date     String // display string, e.g. "Nov 2025" or "2014 — 2016"
+  year     Int // for year grouping
+  title    String
+  tags     String[] @default([]) // work | milestone | talk | side_quest | writing (multiple)
+  body     String
+  icon     String? // optional glyph/emoji shown on the timeline dot
+  featured Boolean  @default(true) // include in the "highlights" view on the page
 
   linkLabel String?
   linkHref  String?
@@ -62,13 +63,13 @@ model Highlight {
 }
 
 model Image {
-  id          String    @id @default(cuid())
-  highlightId String
-  highlight   Highlight @relation(fields: [highlightId], references: [id], onDelete: Cascade)
-  url         String? // null = empty placeholder slot
-  position    Int
+  id       String  @id @default(cuid())
+  eventId  String
+  event    Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  url      String? // null = empty placeholder slot
+  position Int
 
-  @@index([highlightId, position])
+  @@index([eventId, position])
 }
 
 model ChatMessage {

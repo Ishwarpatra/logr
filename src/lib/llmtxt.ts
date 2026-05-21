@@ -42,15 +42,16 @@ export function generateLlmTxt(profile: ProfileDTO, origin: string): string {
   );
   lines.push("");
 
-  for (const h of profile.highlights) {
-    const tagLabel = TAG_META[h.tag]?.label ?? h.tag;
-    lines.push(`### ${h.title}`);
-    lines.push(`- Date: ${h.date}`);
-    lines.push(`- Type: ${tagLabel}`);
-    lines.push(`- Details: ${h.body.replace(/\n/g, " ")}`);
-    if (h.link) lines.push(`- Link: ${h.link.label} (${h.link.href})`);
-    if (isImageIcon(h.icon)) lines.push(`- Logo: ${abs(h.icon)}`);
-    if (h.images.length) lines.push(`- Photos: ${h.images.map(abs).join(", ")}`);
+  for (const e of profile.events) {
+    const tagLabels = e.tags.map((t) => TAG_META[t]?.label ?? t).join(", ");
+    lines.push(`### ${e.title}`);
+    lines.push(`- Date: ${e.date}`);
+    if (tagLabels) lines.push(`- Type: ${tagLabels}`);
+    if (e.featured) lines.push(`- Highlight: yes`);
+    lines.push(`- Details: ${e.body.replace(/\n/g, " ")}`);
+    if (e.link) lines.push(`- Link: ${e.link.label} (${e.link.href})`);
+    if (isImageIcon(e.icon)) lines.push(`- Logo: ${abs(e.icon)}`);
+    if (e.images.length) lines.push(`- Photos: ${e.images.map(abs).join(", ")}`);
     lines.push("");
   }
 

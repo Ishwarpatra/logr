@@ -6,7 +6,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { StyleVarsProvider } from "@/components/ui/StyleVars";
 import { ProfileForm } from "./ProfileForm";
 import { ThemeEditor } from "./ThemeEditor";
-import { HighlightsManager, type EditableHighlight } from "./HighlightsManager";
+import { EventsManager, type EditableEvent } from "./EventsManager";
 import { logoutAction } from "@/lib/actions";
 import { themeCssVars, type Theme } from "@/lib/theme";
 import { Mark } from "@/components/Mark";
@@ -14,7 +14,7 @@ import type { ProfileDTO } from "@/lib/profile";
 
 const TABS = [
   { value: "profile", glyph: "01", label: "profile" },
-  { value: "highlights", glyph: "02", label: "highlights" },
+  { value: "events", glyph: "02", label: "events" },
   { value: "appearance", glyph: "03", label: "appearance" },
 ];
 
@@ -24,10 +24,10 @@ function initial(name: string) {
 
 export function AdminShell({
   profile,
-  highlights,
+  events,
 }: {
   profile: ProfileDTO;
-  highlights: EditableHighlight[];
+  events: EditableEvent[];
 }) {
   const [tab, setTab] = useState("profile");
   // owner's theme draft — drives the dashboard's own look live (palette + accent)
@@ -83,7 +83,7 @@ export function AdminShell({
 
             {tab === "profile" && <ProfileForm profile={profile} />}
             {tab === "appearance" && <ThemeEditor theme={theme} onChange={setTheme} />}
-            {tab === "highlights" && <HighlightsManager highlights={highlights} />}
+            {tab === "events" && <EventsManager events={events} />}
 
             <footer className="foot">
               <span className="brand"><Mark />logr &nbsp;— dashboard</span>

@@ -237,3 +237,14 @@
   .dash .tab { flex: 1; justify-content: center; padding: 9px 12px; }
   .dash .tab[aria-current="true"]::after { display: none; }
 }
+
+/* multi-tag picker (event modal) */
+.dash .tag-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.dash .tag-pick__chip {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--muted);
+  padding: 7px 13px; border: 0.5px solid var(--rule-strong); border-radius: 999px; cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+.dash .tag-pick__chip:hover { color: var(--ink); border-color: var(--ink); }
+.dash .tag-pick__chip[aria-pressed="true"] { color: var(--paper); background: var(--user-accent); border-color: var(--user-accent); }
+.dash .hl-row__star { color: var(--user-accent); font-size: 11px; }

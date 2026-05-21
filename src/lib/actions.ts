@@ -85,13 +85,14 @@ export async function updateThemeAction(theme: Partial<Theme>) {
   revalidateAll();
 }
 
-// ---------- HIGHLIGHTS ----------
-export type HighlightInput = {
+// ---------- EVENTS ----------
+export type EventInput = {
   id?: string;
   date: string;
   year: number;
   title: string;
-  tag: string;
+  tags: string[];
+  featured: boolean;
   body: string;
   icon: string | null;
   linkLabel: string | null;
@@ -100,7 +101,7 @@ export type HighlightInput = {
   images: string[]; // image URLs (0–4)
 };
 
-export async function saveHighlightAction(input: HighlightInput) {
+export async function saveEventAction(input: EventInput) {
   await requireAuth();
   const profile = await prisma.profile.findUniqueOrThrow({
     where: { username: PRIMARY_USERNAME },
@@ -111,7 +112,8 @@ export async function saveHighlightAction(input: HighlightInput) {
     date: input.date,
     year: input.year,
     title: input.title,
-    tag: input.tag,
+    tags: input.tags,
+    featured: input.featured,
     body: input.body,
     icon: input.icon,
     linkLabel: input.linkLabel,
@@ -124,53 +126,30 @@ export async function saveHighlightAction(input: HighlightInput) {
   };
 
   if (input.id) {
-    await prisma.image.deleteMany({ where: { highlightId: input.id } });
-    await prisma.highlight.update({
+    await prisma.image.deleteMany({ where: { eventId: input.id } });
+    await prisma.event.update({
       where: { id: input.id },
       data: { ...data, images },
     });
   } else {
-    await prisma.highlight.create({
+    await prisma.event.create({
       data: { ...data, profileId: profile.id, images },
     });
   }
   revalidateAll();
 }
 
-export async function deleteHighlightAction(id: string) {
+export async function deleteEventAction(id: string) {
   await requireAuth();
-  await prisma.highlight.delete({ where: { id } });
-  revalidateAll();
-}
-
-/** Move a highlight one slot earlier ("up", newer) or later ("down") and
- *  renormalize all positions to be contiguous. */
-export async function moveHighlightAction(id: string, dir: "up" | "down") {
-  await requireAuth();
-  const profile = await prisma.profile.findUniqueOrThrow({
-    where: { username: PRIMARY_USERNAME },
-    select: { id: true },
-  });
-  const items = await prisma.highlight.findMany({
-    where: { profileId: profile.id },
-    orderBy: { position: "asc" },
-    select: { id: true },
-  });
-  const idx = items.findIndex((i) => i.id === id);
-  const swap = dir === "up" ? idx - 1 : idx + 1;
-  if (idx < 0 || swap < 0 || swap >= items.length) return;
-  [items[idx], items[swap]] = [items[swap], items[idx]];
-  await prisma.$transaction(
-    items.map((it, i) => prisma.highlight.update({ where: { id: it.id }, data: { position: i } }))
-  );
+  await prisma.event.delete({ where: { id } });
   revalidateAll();
 }
 
 /** Persist a full drag-reordered list: position = index in `orderedIds`. */
-export async function reorderHighlightsAction(orderedIds: string[]) {
+export async function reorderEventsAction(orderedIds: string[]) {
   await requireAuth();
   await prisma.$transaction(
-    orderedIds.map((id, i) => prisma.highlight.update({ where: { id }, data: { position: i } }))
+    orderedIds.map((id, i) => prisma.event.update({ where: { id }, data: { position: i } }))
   );
   revalidateAll();
 }

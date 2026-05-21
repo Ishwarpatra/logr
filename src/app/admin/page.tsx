@@ -14,20 +14,21 @@ export default async function AdminPage() {
     return <div className="p-8 text-zinc-600">No profile found. Run `npm run db:seed`.</div>;
   }
 
-  // Highlights arrive sorted by position asc; expose a contiguous index.
-  const highlights = profile.highlights.map((h, i) => ({
-    id: h.id,
-    date: h.date,
-    year: h.year,
-    title: h.title,
-    tag: h.tag,
-    body: h.body,
-    icon: h.icon,
-    linkLabel: h.link?.label ?? null,
-    linkHref: h.link?.href ?? null,
+  // Events arrive sorted by position asc; expose a contiguous index.
+  const events = profile.events.map((e, i) => ({
+    id: e.id,
+    date: e.date,
+    year: e.year,
+    title: e.title,
+    tags: e.tags,
+    featured: e.featured,
+    body: e.body,
+    icon: e.icon,
+    linkLabel: e.link?.label ?? null,
+    linkHref: e.link?.href ?? null,
     position: i,
-    images: h.images,
+    images: e.images,
   }));
 
-  return <AdminShell profile={profile} highlights={highlights} />;
+  return <AdminShell profile={profile} events={events} />;
 }

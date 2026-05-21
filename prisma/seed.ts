@@ -56,14 +56,15 @@ async function main() {
 
   for (let i = 0; i < HIGHLIGHTS.length; i++) {
     const h = HIGHLIGHTS[i];
-    await prisma.highlight.create({
+    await prisma.event.create({
       data: {
         id: h.id,
         profileId: profile.id,
         date: h.date,
         year: h.year,
         title: h.title,
-        tag: h.tag,
+        tags: [h.tag],
+        featured: true,
         body: h.body,
         linkLabel: h.linkLabel,
         linkHref: h.linkHref,

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
-import type { ProfileDTO, HighlightDTO } from "@/lib/profile";
+import type { ProfileDTO, EventDTO } from "@/lib/profile";
 import {
   PALETTES,
   LAYOUTS,
@@ -72,7 +72,7 @@ function EntryPhotos({ images }: { images: string[] }) {
 }
 
 // ---------- ENTRY ICON ----------
-function EntryIcon({ h }: { h: HighlightDTO }) {
+function EntryIcon({ h }: { h: EventDTO }) {
   if (h.icon && isImageIcon(h.icon)) {
     return (
       <span className="entry__icon entry__icon--image" aria-hidden="true">
@@ -89,8 +89,10 @@ function EntryIcon({ h }: { h: HighlightDTO }) {
 }
 
 // ---------- ENTRY ----------
-function Entry({ h, recency, active, spotlight, popOrigin }: { h: HighlightDTO; recency: string; active?: boolean; spotlight?: boolean; popOrigin?: string }) {
-  const tag = TAG_META[h.tag]?.label ?? h.tag;
+function Entry({ h, recency, active, spotlight, popOrigin }: { h: EventDTO; recency: string; active?: boolean; spotlight?: boolean; popOrigin?: string }) {
+  // milestone takes the accent dot/style if present; otherwise the first tag.
+  const primaryTag = h.tags.includes("milestone") ? "milestone" : h.tags[0] ?? "work";
+  const tagLabel = h.tags.map((t) => TAG_META[t]?.label ?? t).join(" · ");
   // spotlight layouts: the active entry pops (scale + full opacity), others
   // recede — driven through Framer so it isn't overridden by inline transforms.
   // Scale from the rail side so the dot stays on the timeline line (no displacing).
@@ -109,7 +111,7 @@ function Entry({ h, recency, active, spotlight, popOrigin }: { h: HighlightDTO; 
       };
   return (
     <motion.article
-      className={`entry entry--${recency} entry--${h.tag}${active ? " is-active" : ""}`}
+      className={`entry entry--${recency} entry--${primaryTag}${active ? " is-active" : ""}`}
       id={`e-${h.id}`}
       data-eid={h.id}
       {...motionProps}
@@ -117,7 +119,7 @@ function Entry({ h, recency, active, spotlight, popOrigin }: { h: HighlightDTO; 
       <span className="entry__dot" aria-hidden="true" />
       <div className="entry__date">
         {h.date}
-        <span className="entry__tag">{tag}</span>
+        <span className="entry__tag">{tagLabel}</span>
       </div>
       <h3 className="entry__title">
         <EntryIcon h={h} />
@@ -235,7 +237,9 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
   // picker only sets an in-session preview override (derived, no effect), so
   // it never overrides the saved default on the next load.
   const [preview, setPreview] = useState<{ palette?: string; layout?: string }>({});
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState(() =>
+    profile.events.some((e) => e.featured) ? "highlights" : "all"
+  );
   const [chatOpen, setChatOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -290,26 +294,31 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
   const vars = themeCssVars(theme) as CSSProperties;
 
   const sinceYear = useMemo(
-    () => (profile.highlights.length ? Math.min(...profile.highlights.map((h) => h.year)) : null),
-    [profile.highlights]
+    () => (profile.events.length ? Math.min(...profile.events.map((e) => e.year)) : null),
+    [profile.events]
   );
 
-  const tags = useMemo(
-    () => ["all", ...Array.from(new Set(profile.highlights.map((h) => h.tag)))],
-    [profile.highlights]
-  );
+  const hasFeatured = useMemo(() => profile.events.some((e) => e.featured), [profile.events]);
+
+  // filter tabs: highlights (featured) + all + each distinct tag.
+  const tags = useMemo(() => {
+    const distinct = Array.from(new Set(profile.events.flatMap((e) => e.tags)));
+    return [...(hasFeatured ? ["highlights"] : []), "all", ...distinct];
+  }, [profile.events, hasFeatured]);
 
   // group entries by year, preserving reverse-chronological order.
   // recency is taken from the full-list position so dot sizing stays meaningful
-  // even when a tag filter is applied; year markers only show when non-empty.
+  // even when a filter is applied; year markers only show when non-empty.
   const rows = useMemo(() => {
-    const total = profile.highlights.length;
-    const visible = profile.highlights
+    const total = profile.events.length;
+    const visible = profile.events
       .map((h, i) => ({ h, recency: recencyClass(i, total) }))
-      .filter(({ h }) => filter === "all" || h.tag === filter);
+      .filter(({ h }) =>
+        filter === "all" ? true : filter === "highlights" ? h.featured : h.tags.includes(filter)
+      );
     const out: Array<
       | { type: "year"; year: number }
-      | { type: "entry"; h: HighlightDTO; recency: string }
+      | { type: "entry"; h: EventDTO; recency: string }
     > = [];
     let last: number | null = null;
     visible.forEach(({ h, recency }) => {
@@ -320,7 +329,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
       out.push({ type: "entry", h, recency });
     });
     return out;
-  }, [profile.highlights, filter]);
+  }, [profile.events, filter]);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -408,7 +417,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
                   aria-current={filter === t}
                   onClick={() => setFilter(t)}
                 >
-                  {t === "all" ? "all" : TAG_META[t]?.label ?? t}
+                  {t === "all" || t === "highlights" ? t : TAG_META[t]?.label ?? t}
                 </button>
               ))}
             </nav>
