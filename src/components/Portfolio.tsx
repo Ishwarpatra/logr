@@ -89,16 +89,30 @@ function EntryIcon({ h }: { h: HighlightDTO }) {
 }
 
 // ---------- ENTRY ----------
-function Entry({ h, recency }: { h: HighlightDTO; recency: string }) {
+function Entry({ h, recency, active, spotlight, popOrigin }: { h: HighlightDTO; recency: string; active?: boolean; spotlight?: boolean; popOrigin?: string }) {
   const tag = TAG_META[h.tag]?.label ?? h.tag;
+  // spotlight layouts: the active entry pops (scale + full opacity), others
+  // recede — driven through Framer so it isn't overridden by inline transforms.
+  // Scale from the rail side so the dot stays on the timeline line (no displacing).
+  const motionProps = spotlight
+    ? {
+        animate: { scale: active ? 1.05 : 0.93, opacity: active ? 1 : 0.4 },
+        whileHover: { scale: 1.05, opacity: 1 },
+        transition: { duration: 0.45, ease: EASE },
+        style: { transformOrigin: popOrigin ?? "left center" } as CSSProperties,
+      }
+    : {
+        initial: { opacity: 0, y: 8 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: VIEWPORT,
+        transition: { duration: 0.42, ease: EASE },
+      };
   return (
     <motion.article
-      className={`entry entry--${recency} entry--${h.tag}`}
+      className={`entry entry--${recency} entry--${h.tag}${active ? " is-active" : ""}`}
       id={`e-${h.id}`}
-      initial={{ opacity: 0, y: 8 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={VIEWPORT}
-      transition={{ duration: 0.42, ease: EASE }}
+      data-eid={h.id}
+      {...motionProps}
     >
       <span className="entry__dot" aria-hidden="true" />
       <div className="entry__date">
@@ -223,9 +237,52 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
   const [preview, setPreview] = useState<{ palette?: string; layout?: string }>({});
   const [filter, setFilter] = useState("all");
   const [chatOpen, setChatOpen] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const palette = preview.palette ?? profile.theme.palette;
   const layout = preview.layout ?? profile.theme.layout;
+  // layouts that show all content: the active entry is spotlit (scale/dim)
+  // rather than expanded. only timeline + journal still hide-and-expand.
+  const spotlight = layout !== "timeline" && layout !== "journal";
+  // scale from the rail so the dot stays on the line; centered layout pops symmetrically
+  const popOrigin = layout === "centered" ? "center center" : "left center";
+
+  // scroll-spy: the entry under the vertical center of the viewport is "active"
+  // and expands — so it opens where you're reading, not at the top. The entry
+  // whose box crosses the center line wins (stable as it grows); otherwise the
+  // one nearest the center. rAF-throttled.
+  useEffect(() => {
+    const root = document.querySelector<HTMLElement>(".logr");
+    if (!root) return;
+    let raf = 0;
+    let current: string | null = null;
+    const update = () => {
+      raf = 0;
+      const els = Array.from(root.querySelectorAll<HTMLElement>(".entry"));
+      if (!els.length) return;
+      const mid = window.innerHeight / 2;
+      let nearest = els[0];
+      let best = Infinity;
+      let contained: HTMLElement | null = null;
+      for (const el of els) {
+        const r = el.getBoundingClientRect();
+        if (r.top <= mid && r.bottom >= mid) { contained = el; break; }
+        const dist = Math.abs(r.top + r.height / 2 - mid);
+        if (dist < best) { best = dist; nearest = el; }
+      }
+      const id = (contained ?? nearest).dataset.eid ?? null;
+      if (id !== current) { current = id; setActiveId(id); }
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    onScroll(); // initial (async, next frame)
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [layout, filter]);
   const pickPalette = (p: string) => setPreview((o) => ({ ...o, palette: p }));
   const pickLayout = (l: string) => setPreview((o) => ({ ...o, layout: l }));
 
@@ -366,7 +423,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
                   <span className="year__line" />
                 </div>
               ) : (
-                <Entry key={row.h.id} h={row.h} recency={row.recency} />
+                <Entry key={row.h.id} h={row.h} recency={row.recency} active={activeId === row.h.id} spotlight={spotlight} popOrigin={popOrigin} />
               )
             )}
           </main>
