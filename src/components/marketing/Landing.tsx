@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { HandleClaim } from "./HandleClaim";
+import { RevealObserver } from "./Reveal";
+import { ComposeDemo, AskDemo, GrowDemo } from "./StepDemos";
 import { Mark } from "@/components/Mark";
 
 // The logr marketing landing. Static brand copy; koshik is the example logr.
 export function Landing() {
   return (
     <div className="mkt">
+      <RevealObserver />
       <div className="page">
         {/* bar */}
         <header className="bar">
@@ -18,24 +21,29 @@ export function Landing() {
         </header>
 
         {/* hello */}
-        <section className="hello" aria-label="a note from the maker">
+        <section className="hello" aria-label="a note from the maker" data-reveal>
           <Link className="hello__avatar" href="/koshik" aria-label="koshik's logr">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/koshik-avatar.webp" alt="koshik" width="96" height="96" />
           </Link>
           <p className="hello__copy">
             <span className="hi">hi, i&apos;m <Link href="/koshik">koshik</Link>.</span>{" "}
-            i made logr because the resume i had didn&apos;t fit the life i was living. this is a notebook for the rest of it — mine, yours, the next ten years.
+            i kept hitting the same wall: no resume, linkedin, or twitter bio could actually tell my whole story — to a person, or to the agents now reading on their behalf. so i built logr: log every event once, for both.
           </p>
         </section>
 
         {/* hero */}
         <section className="hero">
-          <h1 className="hero__wordmark" aria-label="logr">logr<span className="hero__caret" aria-hidden="true" /></h1>
-          <p className="hero__lede">log your life. read by humans, ingested by machines.</p>
+          <h1 className="hero__wordmark" aria-label="logr">
+            {"logr".split("").map((c, i) => (
+              <span key={i} className="wm-letter" style={{ animationDelay: `${0.1 + i * 0.09}s` }}>{c}</span>
+            ))}
+            <span className="hero__caret" aria-hidden="true" />
+          </h1>
+          <p className="hero__lede">the story a resume can&apos;t tell. read by humans, ingested by agents.</p>
           <p className="hero__sub">
-            write events from your life — work, moves, mundane tuesdays — once. it becomes a readable timeline for visitors and an exportable{" "}
-            <span style={{ color: "var(--user-accent)" }}>llm.txt</span> any ai tool can ingest. one timeline. two readers.
+            a resume, a linkedin, a twitter bio — none of them hold your whole story, and none speak to the agents now reading on someone&apos;s behalf. log every event once. logr makes it a timeline humans read and an{" "}
+            <span style={{ color: "var(--user-accent)" }}>llm.txt</span> any agent can ingest. one log. two readers.
           </p>
           <div className="hero__cta">
             <HandleClaim id="handle-hero" />
@@ -45,12 +53,12 @@ export function Landing() {
         </section>
 
         {/* 01 dual reader */}
-        <section className="section">
+        <section className="section" data-reveal>
           <div className="section__head">
             <div className="section__num">01 — the duality</div>
             <div>
               <h2 className="section__title">one entry<span className="colon">.</span> two readings<span className="colon">.</span></h2>
-              <p className="section__sub">you write it once. it lives as prose for the people who know you, and as structured context for the agents who don&apos;t.</p>
+              <p className="section__sub">you log it once. it reads as prose for the people who know you, and as structured context for the agents who don&apos;t.</p>
             </div>
           </div>
           <div className="dual">
@@ -80,16 +88,16 @@ export function Landing() {
         </section>
 
         {/* 02 flow */}
-        <section className="section">
+        <section className="section" data-reveal>
           <div className="section__head">
             <div className="section__num">02 — how it works</div>
             <div>
               <h2 className="section__title">four steps<span className="colon">.</span> the fourth never ends<span className="colon">.</span></h2>
-              <p className="section__sub">no wizard. write a sentence, hit save, walk away.</p>
+              <p className="section__sub">no wizard, no profile to polish. log a sentence, hit save, walk away.</p>
             </div>
           </div>
           <div className="flow">
-            <div className="step">
+            <div className="step" data-reveal>
               <div className="step__num">01</div>
               <div className="step__copy">
                 <h3 className="step__title">claim a handle.</h3>
@@ -106,7 +114,7 @@ export function Landing() {
                 </div>
               </div>
             </div>
-            <div className="step">
+            <div className="step" data-reveal>
               <div className="step__num">02</div>
               <div className="step__copy">
                 <h3 className="step__title">add an entry.</h3>
@@ -116,16 +124,12 @@ export function Landing() {
                 <div className="preview-window">
                   <div className="preview-window__bar"><span className="preview-window__dots"><span /><span /><span /></span><span className="url">logr.life<span className="accent">/</span>koshik<span className="accent">/</span>new</span></div>
                   <div className="preview-window__body">
-                    <div className="pw-compose">
-                      <div className="pw-compose__line"><span className="pw-compose__date">2026.05.21</span><span className="pw-compose__colon">:</span><span className="pw-compose__text">started logr<span className="pw-compose__caret" /></span></div>
-                      <div className="pw-compose__meta"><span>tag · <span className="accent">milestone</span></span><span>1 link · 0 photos</span></div>
-                      <div className="pw-compose__hint"><span><kbd>⌘</kbd> <kbd>↵</kbd> save</span><span><kbd>esc</kbd> close</span></div>
-                    </div>
+                    <ComposeDemo />
                   </div>
                 </div>
               </div>
             </div>
-            <div className="step">
+            <div className="step" data-reveal>
               <div className="step__num">03</div>
               <div className="step__copy">
                 <h3 className="step__title">it becomes three things.</h3>
@@ -147,17 +151,11 @@ export function Landing() {
                       <pre><span className="k">now:</span> <span className="accent">building sage</span>{"\n"}<span className="k">2026.05</span> started logr{"\n"}<span className="k">2026.04</span> sage on solana{"\n"}<span className="k">2026.02</span> won zhentan</pre>
                     </div>
                   </div>
-                  <div className="pw-mini pw-mini--ask">
-                    <div className="pw-mini__bar"><span className="accent">/</span>koshik<span className="accent">/</span>ask</div>
-                    <div className="pw-mini__body">
-                      <div className="q">what&apos;s koshik working on?</div>
-                      <div className="a">sage. an ai co-signer for solana. live on mainnet.</div>
-                    </div>
-                  </div>
+                  <AskDemo />
                 </div>
               </div>
             </div>
-            <div className="step">
+            <div className="step" data-reveal>
               <div className="step__num">04</div>
               <div className="step__copy">
                 <h3 className="step__title">keep going.</h3>
@@ -167,12 +165,7 @@ export function Landing() {
                 <div className="preview-window">
                   <div className="preview-window__bar"><span className="preview-window__dots"><span /><span /><span /></span><span className="url">logr.life<span className="accent">/</span>koshik</span></div>
                   <div className="preview-window__body">
-                    <div className="pw-timeline">
-                      <div className="pw-timeline-entry pw-timeline-entry--now"><div className="pw-timeline-entry__date">2026.05</div><div className="pw-timeline-entry__title">started logr.</div></div>
-                      <div className="pw-timeline-entry pw-timeline-entry--recent"><div className="pw-timeline-entry__date">2026.04</div><div className="pw-timeline-entry__title">built sage on solana.</div></div>
-                      <div className="pw-timeline-entry"><div className="pw-timeline-entry__date">2019.01</div><div className="pw-timeline-entry__title">founded consenso labs.</div></div>
-                      <div className="pw-timeline-more">— ⋯ all the way back to 2014 ⋯ —</div>
-                    </div>
+                    <GrowDemo />
                   </div>
                 </div>
               </div>
@@ -181,7 +174,7 @@ export function Landing() {
         </section>
 
         {/* 03 preview */}
-        <section className="section">
+        <section className="section" data-reveal>
           <div className="section__head">
             <div className="section__num">03 — see one</div>
             <div>
@@ -215,7 +208,7 @@ export function Landing() {
         </section>
 
         {/* closing */}
-        <section className="closing" id="claim">
+        <section className="closing" id="claim" data-reveal>
           <h2 className="closing__h">log your life<span className="colon">.</span></h2>
           <p className="closing__sub">it takes about ninety seconds to write the first one. the next one waits until you have something to say.</p>
           <div className="closing__form">

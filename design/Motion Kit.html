@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>logr — motion kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   logr — motion kit
+   the mark in motion, loaders, skeletons, micro-interactions.
+   every animation derived from the brand primitives:
+     — asymmetric two-dot colon
+     — 0.5px hairline timeline
+     — paper/ink/accent
+     — no gradients, no shadows, no glows
+   ============================================================ */
+
+:root {
+  --paper:  #FAF8F3;
+  --ink:    #1A1A1A;
+  --accent: #D85A30;
+  --muted:  #6B6862;
+  --faint:  #95918A;
+  --rule:   rgba(26, 26, 26, 0.12);
+  --rule-strong: rgba(26, 26, 26, 0.28);
+
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  --mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  --user-accent: var(--accent);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "kern";
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; padding: 0; }
+p { margin: 0; text-wrap: pretty; }
+h1, h2, h3, h4 { margin: 0; font-weight: 400; }
+em { font-style: italic; }
+::selection { background: var(--user-accent); color: #fff; }
+
+/* ---------- LAYOUT ---------- */
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 48px 32px 120px;
+}
+
+/* ---------- TOP BAR ---------- */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 28px;
+  border-bottom: 0.5px solid var(--rule);
+  margin-bottom: 80px;
+}
+.bar__brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--serif);
+  font-size: 22px;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.bar__brand .colon { color: var(--user-accent); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--user-accent);
+  border: 0.5px solid var(--user-accent);
+  text-transform: lowercase;
+}
+.bar__meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  gap: 18px;
+  align-items: center;
+}
+.bar__meta button {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  border-bottom: 0.5px solid var(--rule-strong);
+  padding-bottom: 2px;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.bar__meta button:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ---------- HERO ---------- */
+.hero {
+  padding-bottom: 96px;
+  border-bottom: 0.5px solid var(--rule);
+  margin-bottom: 96px;
+}
+.hero__wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(100px, 18vw, 220px);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+.hero__wordmark .colon {
+  color: var(--user-accent);
+  display: inline-block;
+  animation: hero-colon-pulse 2.6s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes hero-colon-pulse {
+  0%, 100% { transform: scale(1); }
+  45%      { transform: scale(1.06); }
+  55%      { transform: scale(1.06); }
+}
+.hero__lede {
+  margin-top: 40px;
+  max-width: 38ch;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(22px, 2.4vw, 28px);
+  line-height: 1.3;
+}
+.hero__tag {
+  margin-top: 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  display: inline-flex;
+  gap: 14px;
+  align-items: center;
+}
+.hero__tag .dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--user-accent);
+  display: inline-block;
+}
+
+/* ---------- SECTIONS ---------- */
+.section { padding: 80px 0; border-top: 0.5px solid var(--rule); }
+.section:first-of-type { border-top: 0; padding-top: 0; }
+.section__head {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 64px;
+  margin-bottom: 48px;
+}
+.section__num {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.section__title {
+  font-family: var(--serif);
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  max-width: 18ch;
+}
+.section__sub {
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 56ch;
+}
+@media (max-width: 720px) {
+  .page { padding: 32px 20px 80px; }
+  .section__head { grid-template-columns: 1fr; gap: 12px; }
+  .section { padding: 56px 0; }
+  .hero { padding-bottom: 56px; margin-bottom: 56px; }
+}
+
+/* ============================================================
+   TILE GRID (the showcase frames)
+   ============================================================ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 0.5px solid var(--rule);
+  border-left: 0.5px solid var(--rule);
+}
+.grid--3 { grid-template-columns: repeat(3, 1fr); }
+.grid--2 { grid-template-columns: repeat(2, 1fr); }
+.tile {
+  border-right: 0.5px solid var(--rule);
+  border-bottom: 0.5px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+.tile--wide { grid-column: span 2; }
+.tile--tall { grid-row: span 2; }
+.tile__stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+}
+.tile__cap {
+  padding: 14px 18px 16px;
+  border-top: 0.5px solid var(--rule);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tile__name {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.tile__tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.tile__note {
+  margin-top: 4px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.4;
+  max-width: 28ch;
+}
+@media (max-width: 900px) {
+  .grid, .grid--3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  .grid, .grid--3, .grid--2 { grid-template-columns: 1fr; }
+  .tile--wide { grid-column: span 1; }
+}
+
+/* ============================================================
+   01 — THE MARK IN MOTION
+   the colon, animated. all derived from two dots on a hairline.
+   ============================================================ */
+
+/* base mark */
+.m {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18em;
+  font-size: 88px;
+  line-height: 1;
+  position: relative;
+}
+.m .top, .m .bot {
+  display: block;
+  border-radius: 50%;
+}
+.m .top {
+  width: 0.34em;
+  height: 0.34em;
+  background: var(--user-accent);
+}
+.m .bot {
+  width: 0.20em;
+  height: 0.20em;
+  background: var(--ink);
+}
+
+/* — heartbeat — the brand's pulse. accent dot beats, ink dot stills. */
+@keyframes pulse-heart {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  18%      { transform: scale(1.22); opacity: 0.9; }
+  30%      { transform: scale(0.96); opacity: 1; }
+  48%      { transform: scale(1.12); opacity: 0.95; }
+  62%      { transform: scale(1);    opacity: 1; }
+}
+.m--heart .top {
+  animation: pulse-heart 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* — breath — both dots, opposite phase. a slow inhale. */
+@keyframes breath-a {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(0.78); opacity: 0.6; }
+}
+@keyframes breath-b {
+  0%, 100% { transform: scale(0.78); opacity: 0.6; }
+  50%      { transform: scale(1);    opacity: 1; }
+}
+.m--breath .top { animation: breath-a 2.6s ease-in-out infinite; transform-origin: center; }
+.m--breath .bot { animation: breath-b 2.6s ease-in-out infinite; transform-origin: center; }
+
+/* — descent — present becomes past. three dots stacked, all moving down.
+   each dot is born at the top in accent, slides down, shrinks, becomes ink,
+   then fades away. infinite. metaphor: every now becomes a then.            */
+.m--descent {
+  width: 0.34em;
+  height: 1.6em;
+  position: relative;
+  flex-direction: row;
+  gap: 0;
+  align-items: flex-start;
+  justify-content: center;
+}
+.m--descent .d {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  animation: descent 3.3s cubic-bezier(.5,.1,.4,1) infinite;
+  transform-origin: center;
+  --bg: var(--user-accent);
+  background: var(--bg);
+}
+@keyframes descent {
+  0%   { top: -10%; width: 0.34em; height: 0.34em; margin-left: -0.17em; background: var(--user-accent); opacity: 0; }
+  12%  { top:  5%;  width: 0.34em; height: 0.34em; margin-left: -0.17em; background: var(--user-accent); opacity: 1; }
+  46%  { top: 38%;  width: 0.28em; height: 0.28em; margin-left: -0.14em; background: var(--user-accent); opacity: 1; }
+  72%  { top: 70%;  width: 0.20em; height: 0.20em; margin-left: -0.10em; background: var(--ink); opacity: 1; }
+  92%  { top: 95%;  width: 0.16em; height: 0.16em; margin-left: -0.08em; background: var(--ink); opacity: 0.4; }
+  100% { top: 110%; width: 0.14em; height: 0.14em; margin-left: -0.07em; background: var(--ink); opacity: 0; }
+}
+.m--descent .d:nth-child(2) { animation-delay: -1.1s; }
+.m--descent .d:nth-child(3) { animation-delay: -2.2s; }
+
+/* — trail — a dot moves down a hairline, leaving fading echoes.
+   the rail itself is the timeline grammar. */
+.m--trail {
+  width: 0.34em;
+  height: 1.8em;
+  position: relative;
+  flex-direction: row;
+  gap: 0;
+}
+.m--trail::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 0.5px;
+  background: var(--rule-strong);
+  transform: translateX(-0.25px);
+}
+.m--trail .t {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  background: var(--user-accent);
+  animation: trail 2.4s cubic-bezier(.4,.0,.6,1) infinite;
+}
+@keyframes trail {
+  0%   { top:   0%; width: 0.34em; height: 0.34em; margin-left: -0.17em; opacity: 0; }
+  10%  { top:   5%; width: 0.34em; height: 0.34em; margin-left: -0.17em; opacity: 1; }
+  85%  { top:  90%; width: 0.34em; height: 0.34em; margin-left: -0.17em; opacity: 1; }
+  100% { top: 100%; width: 0.34em; height: 0.34em; margin-left: -0.17em; opacity: 0; }
+}
+.m--trail .t.echo { background: var(--ink); }
+.m--trail .t:nth-child(2) { animation-delay: -0.20s; opacity: 0.5; transform: scale(0.78); }
+.m--trail .t:nth-child(3) { animation-delay: -0.40s; opacity: 0.3; transform: scale(0.6); }
+.m--trail .t:nth-child(4) { animation-delay: -0.60s; opacity: 0.18; transform: scale(0.5); }
+
+/* — cycle — accent dot orbits the ink dot. tiny solar system. */
+.m--cycle { width: 1em; height: 1em; position: relative; }
+.m--cycle .center {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 0.20em; height: 0.20em;
+  margin: -0.10em 0 0 -0.10em;
+  background: var(--ink);
+  border-radius: 50%;
+}
+.m--cycle .orbit {
+  position: absolute;
+  inset: 0;
+  animation: orbit 2.6s linear infinite;
+  transform-origin: center;
+}
+.m--cycle .orbit::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0.30em;
+  height: 0.30em;
+  margin-left: -0.15em;
+  background: var(--user-accent);
+  border-radius: 50%;
+}
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+
+/* — blink — colon-cursor punctuation. a written page comes alive. */
+@keyframes cursor-blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.m--blink .top, .m--blink .bot {
+  animation: cursor-blink 1.05s steps(1) infinite;
+}
+.m--blink .bot { animation-delay: 0.05s; }
+
+/* — drop — two dots fall in, accent first. */
+@keyframes drop-top {
+  0%   { transform: translateY(-1.4em); opacity: 0; }
+  60%  { transform: translateY(0.08em); opacity: 1; }
+  78%  { transform: translateY(-0.04em); }
+  100% { transform: translateY(0); }
+}
+@keyframes drop-bot {
+  0%, 25%   { transform: translateY(-2.4em); opacity: 0; }
+  82%       { transform: translateY(0.06em); opacity: 1; }
+  100%      { transform: translateY(0); }
+}
+.m--drop .top { animation: drop-top 1.6s cubic-bezier(.4,0,.2,1) both; }
+.m--drop .bot { animation: drop-bot 1.7s cubic-bezier(.4,0,.2,1) both; }
+.m--drop.replay .top, .m--drop.replay .bot { animation: none; }
+
+/* — wordmark draw — letters fade in, colon arrives last, in accent. */
+.wm-draw {
+  font-family: var(--serif);
+  font-size: 120px;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+}
+.wm-draw span {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.18em);
+  animation: letter-in 600ms cubic-bezier(.2,.6,.2,1) forwards;
+}
+.wm-draw span.colon { color: var(--user-accent); }
+.wm-draw span:nth-child(1) { animation-delay: 0.10s; }
+.wm-draw span:nth-child(2) { animation-delay: 0.22s; }
+.wm-draw span:nth-child(3) { animation-delay: 0.34s; }
+.wm-draw span:nth-child(4) { animation-delay: 0.46s; }
+.wm-draw span:nth-child(5) {
+  animation-delay: 0.78s;
+  animation-name: colon-in;
+  animation-duration: 700ms;
+}
+@keyframes letter-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes colon-in {
+  0%   { opacity: 0; transform: scale(0.6) translateY(0.18em); }
+  60%  { opacity: 1; transform: scale(1.18) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ============================================================
+   02 — LOADERS (section-level wait states)
+   ============================================================ */
+
+/* timeline scan — the dot walks a real rail */
+.loader-rail {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: 22px;
+  padding: 16px 24px 16px 16px;
+  align-items: stretch;
+}
+.loader-rail__rail {
+  position: relative;
+  width: 12px;
+}
+.loader-rail__rail::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  bottom: 6%;
+  width: 0.5px;
+  background: var(--rule-strong);
+  transform: translateX(-0.25px);
+}
+.loader-rail__dot {
+  position: absolute;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border-radius: 50%;
+  background: var(--user-accent);
+  top: 6%;
+  animation: rail-walk 2.6s cubic-bezier(.5,0,.5,1) infinite;
+}
+@keyframes rail-walk {
+  0%, 100% { top: 6%;  background: var(--user-accent); transform: scale(1); }
+  48%      { top: 50%; background: var(--user-accent); transform: scale(0.85); }
+  50%      { top: 50%; background: var(--user-accent); transform: scale(0.85); }
+  96%      { top: 94%; background: var(--ink); transform: scale(0.6); }
+}
+.loader-rail__lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.loader-rail__line {
+  height: 0.5px;
+  background: var(--rule-strong);
+  opacity: 0.5;
+  animation: rail-line 2.6s ease-in-out infinite;
+}
+.loader-rail__line:nth-child(1) { width: 75%; animation-delay: 0s; }
+.loader-rail__line:nth-child(2) { width: 45%; animation-delay: -0.35s; }
+.loader-rail__line:nth-child(3) { width: 60%; animation-delay: -0.70s; }
+.loader-rail__line:nth-child(4) { width: 38%; animation-delay: -1.05s; }
+@keyframes rail-line {
+  0%, 100% { opacity: 0.18; }
+  20%      { opacity: 0.7; }
+}
+
+/* progress bar — hairline that fills, with a leading accent dot */
+.loader-bar {
+  width: 78%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.loader-bar__track {
+  position: relative;
+  height: 1px;
+  background: var(--rule);
+  overflow: visible;
+}
+.loader-bar__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--user-accent);
+  width: 0;
+  animation: bar-fill 2.4s cubic-bezier(.5,.05,.3,1) infinite;
+}
+.loader-bar__dot {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--user-accent);
+  left: 0;
+  animation: bar-dot 2.4s cubic-bezier(.5,.05,.3,1) infinite;
+}
+@keyframes bar-fill {
+  0%   { width: 0; }
+  80%  { width: 100%; }
+  100% { width: 100%; opacity: 0; }
+}
+@keyframes bar-dot {
+  0%   { left: 0;    transform: translate(0, -50%) scale(1); }
+  80%  { left: 100%; transform: translate(-100%, -50%) scale(1); }
+  85%  { transform: translate(-100%, -50%) scale(0.6); }
+  100% { left: 100%; transform: translate(-100%, -50%) scale(0); opacity: 0; }
+}
+.loader-bar__meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.loader-bar__meta .accent { color: var(--user-accent); }
+
+/* timestamp ticking — the machine voice, writing the now */
+.loader-stamp {
+  font-family: var(--mono);
+  font-size: 28px;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+  flex-direction: column;
+}
+.loader-stamp__row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+}
+.loader-stamp .live {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: left;
+}
+.loader-stamp__cursor {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1em;
+  background: var(--user-accent);
+  margin-left: 2px;
+  vertical-align: -0.12em;
+  animation: cursor-blink 1.05s steps(1) infinite;
+}
+.loader-stamp__sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+/* dots — three dots walking, brand-flavoured. */
+.loader-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.loader-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: dots-pulse 1.2s ease-in-out infinite;
+}
+.loader-dots span:nth-child(1) { background: var(--user-accent); animation-delay: 0s;    }
+.loader-dots span:nth-child(2) { animation-delay: 0.14s; }
+.loader-dots span:nth-child(3) { animation-delay: 0.28s; opacity: 0.6; }
+@keyframes dots-pulse {
+  0%, 70%, 100% { transform: translateY(0); }
+  35%           { transform: translateY(-6px); }
+}
+
+/* ============================================================
+   03 — SKELETONS (placeholder UI, in real context)
+   the rule: skeletons obey hairline grammar. low-ink fills,
+   subtle synchronized opacity pulse. never a moving gradient.
+   ============================================================ */
+
+@keyframes sk-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+.sk {
+  background: rgba(26, 26, 26, 0.06);
+  display: block;
+  animation: sk-pulse 1.6s ease-in-out infinite;
+  border-radius: 0;
+}
+.sk--circle { border-radius: 50%; }
+.sk--line { height: 0.9em; }
+.sk--rule { height: 0.5px; background: var(--rule-strong); animation: none; opacity: 1; }
+
+/* a single accent dot somewhere on the skeleton signals "loading,
+   this is yours" — like the dot on the timeline */
+.sk-mark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.sk-mark .a {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--user-accent);
+  animation: sk-blink 1.2s ease-in-out infinite;
+}
+.sk-mark .b {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.4;
+  animation: sk-blink 1.2s ease-in-out 0.15s infinite;
+}
+@keyframes sk-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+/* timeline entry skeleton — matches the entry on Brand Kit + portfolio */
+.sk-entry {
+  width: 100%;
+  padding: 0 28px;
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.sk-entry__date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sk-entry__body {
+  position: relative;
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sk-entry__body::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: -14px;
+  width: 0.5px;
+  background: var(--rule-strong);
+}
+.sk-entry__dot {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--user-accent);
+  animation: sk-blink 1.2s ease-in-out infinite;
+}
+.sk-entry__title { width: 78%; height: 18px; }
+.sk-entry__b1   { width: 92%; height: 10px; animation-delay: 0.1s; }
+.sk-entry__b2   { width: 64%; height: 10px; animation-delay: 0.2s; }
+
+/* highlight row skeleton — matches dashboard hl-row */
+.sk-hl {
+  width: 100%;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.sk-hl__row {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--rule);
+}
+.sk-hl__row:last-child { border-bottom: 0; }
+.sk-hl__thumb {
+  width: 44px;
+  height: 44px;
+  background: rgba(26, 26, 26, 0.06);
+  border: 0.5px solid var(--rule-strong);
+  animation: sk-pulse 1.6s ease-in-out infinite;
+}
+.sk-hl__row:nth-child(1) .sk-hl__thumb {
+  background: transparent;
+  border-color: var(--user-accent);
+  animation: sk-blink 1.2s ease-in-out infinite;
+}
+.sk-hl__copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sk-hl__title { height: 14px; }
+.sk-hl__meta  { height: 9px; }
+.sk-hl__row:nth-child(1) .sk-hl__title { width: 62%; animation-delay: 0s; }
+.sk-hl__row:nth-child(1) .sk-hl__meta  { width: 44%; animation-delay: 0.1s; }
+.sk-hl__row:nth-child(2) .sk-hl__title { width: 76%; animation-delay: 0.05s; }
+.sk-hl__row:nth-child(2) .sk-hl__meta  { width: 38%; animation-delay: 0.15s; }
+.sk-hl__row:nth-child(3) .sk-hl__title { width: 54%; animation-delay: 0.1s; }
+.sk-hl__row:nth-child(3) .sk-hl__meta  { width: 50%; animation-delay: 0.2s; }
+
+/* profile hero skeleton — matches dashboard hero */
+.sk-hero {
+  width: 100%;
+  padding: 0 28px;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.sk-hero__avatar {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border: 0.5px solid var(--rule-strong);
+}
+.sk-hero__copy { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.sk-hero__name { height: 28px; width: 60%; }
+.sk-hero__sub  { height: 12px; width: 80%; animation-delay: 0.1s; }
+
+/* card skeleton — header + field rows */
+.sk-card {
+  width: 100%;
+  padding: 20px 24px;
+  border: 0.5px solid var(--rule-strong);
+  background: var(--paper);
+}
+.sk-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid var(--rule);
+  margin-bottom: 16px;
+}
+.sk-card__head .sk { width: 38%; height: 10px; }
+.sk-card__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.sk-card__field { display: flex; flex-direction: column; gap: 6px; }
+.sk-card__field .l { height: 8px; width: 28%; }
+.sk-card__field .i { height: 32px; width: 100%; }
+.sk-card__row:nth-child(2) .l { animation-delay: 0.05s; }
+.sk-card__row:nth-child(2) .i { animation-delay: 0.15s; }
+.sk-card__row:nth-child(3) .l { animation-delay: 0.1s; }
+.sk-card__row:nth-child(3) .i { animation-delay: 0.2s; }
+
+/* paragraph skeleton — the about-text shape */
+.sk-para {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.sk-para .sk { height: 10px; }
+.sk-para .sk:nth-child(1) { width: 96%; }
+.sk-para .sk:nth-child(2) { width: 88%; animation-delay: 0.1s; }
+.sk-para .sk:nth-child(3) { width: 92%; animation-delay: 0.2s; }
+.sk-para .sk:nth-child(4) { width: 60%; animation-delay: 0.3s; }
+
+/* ============================================================
+   04 — MICRO-INTERACTIONS
+   moments inside the product. each one earned its keyframe.
+   ============================================================ */
+
+/* button: save -> success dot ripples out */
+.mi-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  padding: 10px 18px;
+  background: var(--user-accent);
+  border: 0.5px solid var(--user-accent);
+  color: var(--paper);
+  cursor: pointer;
+  position: relative;
+  transition: opacity 160ms ease, transform 220ms cubic-bezier(.3,.8,.3,1);
+}
+.mi-btn:hover { opacity: 0.92; }
+.mi-btn:active { transform: scale(0.97); }
+.mi-btn .label-default,
+.mi-btn .label-saved { display: inline-flex; align-items: center; gap: 8px; transition: opacity 200ms ease, transform 320ms cubic-bezier(.3,.8,.3,1); }
+.mi-btn .label-saved {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, 8px);
+  opacity: 0;
+  white-space: nowrap;
+}
+.mi-btn .label-saved::before {
+  content: "";
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+.mi-btn.is-saved .label-default { opacity: 0; transform: translateY(-8px); }
+.mi-btn.is-saved .label-saved { opacity: 1; transform: translate(-50%, -50%); }
+.mi-btn .ripple {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--paper);
+  opacity: 0;
+  pointer-events: none;
+}
+.mi-btn.is-saved .ripple {
+  animation: btn-ripple 700ms ease-out;
+}
+@keyframes btn-ripple {
+  0%   { opacity: 0.5; transform: scale(0); }
+  100% { opacity: 0;   transform: scale(8); }
+}
+
+/* text input: focus draws an accent underline */
+.mi-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(360px, 100%);
+}
+.mi-field__label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.mi-field__wrap {
+  position: relative;
+  border: 0.5px solid var(--rule-strong);
+  transition: border-color 160ms ease;
+  background: transparent;
+}
+.mi-field input {
+  font: inherit;
+  font-family: var(--serif);
+  font-size: 16px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 10px 14px;
+  width: 100%;
+}
+.mi-field__rail {
+  position: absolute;
+  left: 0;
+  bottom: -0.5px;
+  height: 1.5px;
+  width: 0;
+  background: var(--user-accent);
+  transition: width 360ms cubic-bezier(.4,0,.2,1);
+}
+.mi-field__wrap:focus-within { border-color: var(--user-accent); }
+.mi-field__wrap:focus-within .mi-field__rail { width: 100%; }
+
+/* checkbox: accent square draws in */
+.mi-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--serif);
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.mi-check input { position: absolute; opacity: 0; pointer-events: none; }
+.mi-check__box {
+  width: 18px;
+  height: 18px;
+  border: 0.5px solid var(--rule-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 160ms ease;
+}
+.mi-check__box::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: var(--user-accent);
+  transform: scale(0);
+  transition: transform 260ms cubic-bezier(.3,.9,.3,1);
+}
+.mi-check input:checked + .mi-check__box { border-color: var(--user-accent); }
+.mi-check input:checked + .mi-check__box::after { transform: scale(1); }
+
+/* entry hover: dot grows to accent, title nudges left */
+.mi-entry {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 20px;
+  width: min(380px, 100%);
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+.mi-entry:hover { background: rgba(26,26,26,0.03); }
+.mi-entry__date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  padding-top: 7px;
+}
+.mi-entry__line {
+  position: relative;
+  padding-left: 24px;
+}
+.mi-entry__dot {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.7;
+  transition: width 240ms cubic-bezier(.3,.9,.3,1),
+              height 240ms cubic-bezier(.3,.9,.3,1),
+              background-color 200ms ease,
+              opacity 200ms ease,
+              left 240ms cubic-bezier(.3,.9,.3,1),
+              top 240ms cubic-bezier(.3,.9,.3,1);
+}
+.mi-entry__title {
+  font-family: var(--serif);
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  transition: transform 240ms cubic-bezier(.3,.9,.3,1);
+}
+.mi-entry:hover .mi-entry__dot {
+  width: 11px; height: 11px;
+  left: -2px; top: 6px;
+  background: var(--user-accent);
+  opacity: 1;
+}
+.mi-entry:hover .mi-entry__title { transform: translateX(2px); }
+
+/* tab underline — colon glides between active tabs */
+.mi-tabs {
+  position: relative;
+  display: inline-flex;
+  gap: 32px;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid var(--rule);
+}
+.mi-tabs__btn {
+  font-family: var(--serif);
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  padding: 4px 0;
+  transition: color 200ms ease;
+  position: relative;
+}
+.mi-tabs__btn.is-on { color: var(--ink); }
+.mi-tabs__rail {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--user-accent);
+  transition: left 360ms cubic-bezier(.4,.0,.2,1),
+              width 360ms cubic-bezier(.4,.0,.2,1);
+}
+.mi-tabs__btn .colon {
+  color: var(--user-accent);
+  margin-left: 2px;
+  opacity: 0;
+  display: inline-block;
+  transform: translateY(2px);
+  transition: opacity 240ms ease, transform 240ms cubic-bezier(.3,.9,.3,1);
+}
+.mi-tabs__btn.is-on .colon { opacity: 1; transform: translateY(0); }
+
+/* modal enter — rises with a tiny scale, hairline draws across top */
+.mi-modal-stage {
+  position: relative;
+  width: 92%;
+  height: 90%;
+  border: 0.5px solid var(--rule);
+  background: rgba(26,26,26,0.02);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mi-modal {
+  width: 78%;
+  border: 0.5px solid var(--rule-strong);
+  background: var(--paper);
+  padding: 22px 24px 18px;
+  opacity: 0;
+  transform: translateY(12px) scale(0.985);
+  animation: modal-in 600ms cubic-bezier(.2,.7,.3,1) infinite alternate;
+  position: relative;
+}
+.mi-modal::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 1.5px;
+  width: 0;
+  background: var(--user-accent);
+  animation: modal-rail 600ms cubic-bezier(.2,.7,.3,1) infinite alternate;
+}
+@keyframes modal-in {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.985); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes modal-rail {
+  0%   { width: 0; }
+  100% { width: 100%; }
+}
+.mi-modal__title {
+  font-family: var(--serif);
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.mi-modal__title .colon { color: var(--user-accent); }
+.mi-modal__sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.mi-modal__rows { display: flex; flex-direction: column; gap: 8px; }
+.mi-modal__rows .sk { height: 9px; }
+.mi-modal__rows .sk:nth-child(1) { width: 80%; }
+.mi-modal__rows .sk:nth-child(2) { width: 65%; }
+
+/* ============================================================
+   THE USAGE STRIP (a real timeline, fully populated with motion)
+   ============================================================ */
+.usage {
+  margin-top: 56px;
+  padding: 48px 36px;
+  border: 0.5px solid var(--rule);
+  background: rgba(26, 26, 26, 0.015);
+}
+.usage__lead {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 56ch;
+  margin-bottom: 28px;
+}
+.usage__rail {
+  position: relative;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.usage__rail::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  bottom: 10px;
+  width: 0.5px;
+  background: var(--rule-strong);
+}
+.usage__entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 24px;
+  align-items: baseline;
+}
+.usage__entry__dot {
+  position: absolute;
+  left: -28px;
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.7;
+}
+.usage__entry:first-child .usage__entry__dot {
+  width: 11px; height: 11px;
+  left: -29px; top: 7px;
+  background: var(--user-accent);
+  opacity: 1;
+  animation: pulse-heart 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.usage__entry__date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.usage__entry__title {
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.usage__entry__note {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+@media (max-width: 600px) {
+  .usage__entry { grid-template-columns: 80px 1fr; }
+  .usage__entry__note { grid-column: 2; }
+}
+
+/* speed control row — discreet, top of page */
+.speed {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.speed__btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 4px 8px;
+  border: 0.5px solid var(--rule);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.speed__btn:hover { color: var(--ink); border-color: var(--ink); }
+.speed__btn.is-on { color: var(--user-accent); border-color: var(--user-accent); }
+
+/* ---------- FOOTER ---------- */
+.foot {
+  margin-top: 96px;
+  padding-top: 36px;
+  border-top: 0.5px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.foot .colon { color: var(--user-accent); }
+
+/* honor reduce-motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* speed multipliers (data-speed on body) */
+body[data-speed="slow"]   { --speed-mult: 1.8; }
+body[data-speed="normal"] { --speed-mult: 1; }
+body[data-speed="fast"]   { --speed-mult: 0.55; }
+
+
+/* ============ BRAND WORDMARK ============ */
+/* mark icon (asymmetric two-dot colon) sits left of the word.
+   sizes in em so it scales with whatever font-size you set on .wm.   */
+.wm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.30em;
+  font-family: inherit;
+  letter-spacing: inherit;
+  line-height: 1;
+}
+.wm__mark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18em;
+  flex-shrink: 0;
+}
+.wm__mark .d-top,
+.wm__mark .d-bot {
+  display: block;
+  border-radius: 50%;
+}
+.wm__mark .d-top {
+  width: 0.34em;
+  height: 0.34em;
+  background: var(--user-accent);
+}
+.wm__mark .d-bot {
+  width: 0.20em;
+  height: 0.20em;
+  background: var(--ink);
+}
+.wm__text { display: inline-block; }
+
+</style>
+</head>
+<body data-speed="normal">
+
+<div class="page">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="bar">
+    <span class="bar__brand">
+      <span class="wm"><span class="wm__mark" aria-hidden="true"><span class="d-top"></span><span class="d-bot"></span></span><span class="wm__text">logr</span></span>
+      <span class="chip">motion kit</span>
+    </span>
+    <div class="bar__meta">
+      <span>v1.0 / 2026.05</span>
+      <div class="speed" id="speedCtl">
+        <button class="speed__btn" data-speed="slow">slow</button>
+        <button class="speed__btn is-on" data-speed="normal">1×</button>
+        <button class="speed__btn" data-speed="fast">fast</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero__wordmark" aria-label="logr"><span class="wm"><span class="wm__mark" aria-hidden="true"><span class="d-top"></span><span class="d-bot"></span></span><span class="wm__text">logr</span></span></div>
+    <p class="hero__lede">motion is grammar, not decoration. each animation here is built from two dots and a hairline — the brand, alive.</p>
+    <div class="hero__tag">
+      <span class="dot" aria-hidden="true"></span>
+      <span>animations · loaders · skeletons · micro-interactions</span>
+    </div>
+  </section>
+
+  <!-- ============ 01 — MARK IN MOTION ============ -->
+  <section class="section">
+    <div class="section__head">
+      <div class="section__num">01 — the mark in motion</div>
+      <div>
+        <h2 class="section__title">the colon, alive.</h2>
+        <p class="section__sub">eight readings of the two-dot mark. each tile is brand-legal on its own — drop one into a header, a loading state, an empty state, a 404. the asymmetric pair holds.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- heartbeat -->
+      <div class="tile">
+        <div class="tile__stage">
+          <span class="m m--heart" aria-hidden="true"><span class="top"></span><span class="bot"></span></span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">heartbeat</div>
+            <p class="tile__note">the present keeps a pulse. use as a system idle.</p>
+          </div>
+          <span class="tile__tag">.m--heart</span>
+        </div>
+      </div>
+
+      <!-- breath -->
+      <div class="tile">
+        <div class="tile__stage">
+          <span class="m m--breath" aria-hidden="true"><span class="top"></span><span class="bot"></span></span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">breath</div>
+            <p class="tile__note">paired pulse, opposite phase. quiet, ambient.</p>
+          </div>
+          <span class="tile__tag">.m--breath</span>
+        </div>
+      </div>
+
+      <!-- descent -->
+      <div class="tile">
+        <div class="tile__stage">
+          <span class="m m--descent" aria-hidden="true"><span class="d"></span><span class="d"></span><span class="d"></span></span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">descent</div>
+            <p class="tile__note">every now becomes a then. for sync / autosave.</p>
+          </div>
+          <span class="tile__tag">.m--descent</span>
+        </div>
+      </div>
+
+      <!-- trail -->
+      <div class="tile">
+        <div class="tile__stage">
+          <span class="m m--trail" aria-hidden="true"><span class="t"></span><span class="t"></span><span class="t"></span><span class="t"></span></span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">trail</div>
+            <p class="tile__note">dot on a rail, echoes behind. progress, generic.</p>
+          </div>
+          <span class="tile__tag">.m--trail</span>
+        </div>
+      </div>
+
+      <!-- cycle -->
+      <div class="tile">
+        <div class="tile__stage">
+          <span class="m m--cycle" style="font-size:120px" aria-hidden="true"><span class="center"></span><span class="orbit"></span></span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">cycle</div>
+            <p class="tile__note">present orbits past. spinners that don't feel like web spinners.</p>
+          </div>
+          <span class="tile__tag">.m--cycle</span>
+        </div>
+      </div>
+
+      <!-- blink -->
+      <div class="tile">
+        <div class="tile__stage">
+          <span class="m m--blink" aria-hidden="true"><span class="top"></span><span class="bot"></span></span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">blink</div>
+            <p class="tile__note">a cursor for prose. reading or thinking states.</p>
+          </div>
+          <span class="tile__tag">.m--blink</span>
+        </div>
+      </div>
+
+      <!-- drop -->
+      <div class="tile" id="dropTile">
+        <div class="tile__stage">
+          <span class="m m--drop" aria-hidden="true"><span class="top"></span><span class="bot"></span></span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">drop · on enter</div>
+            <p class="tile__note">first paint. accent lands, ink follows. <a href="#" id="dropReplay" style="color:var(--user-accent);border-bottom:0.5px solid var(--user-accent)">replay</a></p>
+          </div>
+          <span class="tile__tag">.m--drop</span>
+        </div>
+      </div>
+
+      <!-- wordmark draw -->
+      <div class="tile tile--wide" id="wmTile">
+        <div class="tile__stage" style="justify-content: flex-start; padding: 32px 48px;">
+          <div class="wm-draw" id="wmDraw"><span>l</span><span>o</span><span>g</span><span>r</span><span class="colon">:</span></div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">wordmark / draw-in</div>
+            <p class="tile__note">letters arrive in sequence; the colon lands last, in accent. for splash / page enter. <a href="#" id="wmReplay" style="color:var(--user-accent);border-bottom:0.5px solid var(--user-accent)">replay</a></p>
+          </div>
+          <span class="tile__tag">.wm-draw</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 — LOADERS ============ -->
+  <section class="section">
+    <div class="section__head">
+      <div class="section__num">02 — loaders</div>
+      <div>
+        <h2 class="section__title">waiting, in the brand's voice.</h2>
+        <p class="section__sub">four loaders for four scales: a section's worth of work, a numeric job, a page reading itself in, a quiet little throb.</p>
+      </div>
+    </div>
+
+    <div class="grid grid--2">
+      <!-- rail walker (section) -->
+      <div class="tile tile--tall">
+        <div class="tile__stage" style="padding: 0;">
+          <div class="loader-rail">
+            <div class="loader-rail__rail">
+              <span class="loader-rail__dot"></span>
+            </div>
+            <div class="loader-rail__lines">
+              <span class="loader-rail__line"></span>
+              <span class="loader-rail__line"></span>
+              <span class="loader-rail__line"></span>
+              <span class="loader-rail__line"></span>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">timeline scan</div>
+            <p class="tile__note">use when loading a list of entries. the rail is the same one users will read.</p>
+          </div>
+          <span class="tile__tag">.loader-rail</span>
+        </div>
+      </div>
+
+      <!-- progress bar -->
+      <div class="tile">
+        <div class="tile__stage" style="padding: 24px 32px;">
+          <div class="loader-bar">
+            <div class="loader-bar__meta">
+              <span>uploading photo</span>
+              <span class="accent" id="barPct">42%</span>
+            </div>
+            <div class="loader-bar__track">
+              <span class="loader-bar__fill"></span>
+              <span class="loader-bar__dot"></span>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">progress · hairline</div>
+            <p class="tile__note">a determinate fill led by the accent dot. file uploads, exports.</p>
+          </div>
+          <span class="tile__tag">.loader-bar</span>
+        </div>
+      </div>
+
+      <!-- timestamp ticker -->
+      <div class="tile">
+        <div class="tile__stage" style="padding: 24px 32px; flex-direction: column; gap: 8px; align-items: flex-start;">
+          <div class="loader-stamp">
+            <div class="loader-stamp__row">
+              <span id="stampDate">2026.05.21</span>
+              <span class="loader-stamp__cursor"></span>
+            </div>
+            <span class="loader-stamp__sub">saving entry…</span>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">timestamp · live</div>
+            <p class="tile__note">the machine voice, writing the present. for autosave, sync, "drafting…".</p>
+          </div>
+          <span class="tile__tag">.loader-stamp</span>
+        </div>
+      </div>
+
+      <!-- dots -->
+      <div class="tile tile--wide">
+        <div class="tile__stage" style="gap: 32px;">
+          <span class="loader-dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span style="font-family:var(--serif); font-style:italic; color:var(--muted)">thinking it over</span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">three dots</div>
+            <p class="tile__note">the bouncing trio, redrawn — the first dot is yours. for inline llm / waiting moments.</p>
+          </div>
+          <span class="tile__tag">.loader-dots</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 — SKELETONS ============ -->
+  <section class="section">
+    <div class="section__head">
+      <div class="section__num">03 — skeletons</div>
+      <div>
+        <h2 class="section__title">placeholders that already look like logr.</h2>
+        <p class="section__sub">every skeleton uses the same hairline grammar as the finished page. no moving gradients — a synchronized opacity pulse, plus the live accent dot wherever the real one will land.</p>
+      </div>
+    </div>
+
+    <div class="grid grid--2">
+      <!-- timeline entries -->
+      <div class="tile tile--tall">
+        <div class="tile__stage" style="align-items: stretch; padding: 32px 0;">
+          <div style="display:flex; flex-direction:column; gap:32px; width:100%;">
+            <div class="sk-entry">
+              <div class="sk-entry__date">
+                <span class="sk sk--line" style="width:80%; height:10px;"></span>
+              </div>
+              <div class="sk-entry__body">
+                <span class="sk-entry__dot"></span>
+                <span class="sk sk-entry__title"></span>
+                <span class="sk sk-entry__b1"></span>
+                <span class="sk sk-entry__b2"></span>
+              </div>
+            </div>
+            <div class="sk-entry">
+              <div class="sk-entry__date">
+                <span class="sk sk--line" style="width:60%; height:10px;"></span>
+              </div>
+              <div class="sk-entry__body">
+                <span class="sk-entry__dot" style="background:var(--ink); opacity:0.5;"></span>
+                <span class="sk sk-entry__title" style="width:64%"></span>
+                <span class="sk sk-entry__b1" style="width:84%"></span>
+              </div>
+            </div>
+            <div class="sk-entry">
+              <div class="sk-entry__date">
+                <span class="sk sk--line" style="width:50%; height:10px;"></span>
+              </div>
+              <div class="sk-entry__body">
+                <span class="sk-entry__dot" style="background:var(--ink); opacity:0.4; width:7px; height:7px;"></span>
+                <span class="sk sk-entry__title" style="width:54%"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">timeline · entries</div>
+            <p class="tile__note">the rail and dot-scale are real. recent up top, older receding. matches the portfolio.</p>
+          </div>
+          <span class="tile__tag">.sk-entry</span>
+        </div>
+      </div>
+
+      <!-- highlights -->
+      <div class="tile">
+        <div class="tile__stage" style="align-items: stretch; padding: 18px 0;">
+          <div class="sk-hl">
+            <div class="sk-hl__row">
+              <span class="sk-hl__thumb"></span>
+              <div class="sk-hl__copy">
+                <span class="sk sk-hl__title"></span>
+                <span class="sk sk-hl__meta"></span>
+              </div>
+            </div>
+            <div class="sk-hl__row">
+              <span class="sk-hl__thumb"></span>
+              <div class="sk-hl__copy">
+                <span class="sk sk-hl__title"></span>
+                <span class="sk sk-hl__meta"></span>
+              </div>
+            </div>
+            <div class="sk-hl__row">
+              <span class="sk-hl__thumb"></span>
+              <div class="sk-hl__copy">
+                <span class="sk sk-hl__title"></span>
+                <span class="sk sk-hl__meta"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">dashboard · highlights</div>
+            <p class="tile__note">matches the row pattern in the dashboard. first row outlined in accent.</p>
+          </div>
+          <span class="tile__tag">.sk-hl</span>
+        </div>
+      </div>
+
+      <!-- hero / profile -->
+      <div class="tile">
+        <div class="tile__stage">
+          <div class="sk-hero">
+            <span class="sk sk--circle sk-hero__avatar"></span>
+            <div class="sk-hero__copy">
+              <span class="sk sk-hero__name"></span>
+              <span class="sk sk-hero__sub"></span>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">profile · hero</div>
+            <p class="tile__note">avatar circle, name, tagline. the portfolio's opening shape.</p>
+          </div>
+          <span class="tile__tag">.sk-hero</span>
+        </div>
+      </div>
+
+      <!-- card -->
+      <div class="tile">
+        <div class="tile__stage">
+          <div class="sk-card">
+            <div class="sk-card__head">
+              <span class="sk"></span>
+              <span class="sk-mark"><span class="a"></span><span class="b"></span></span>
+            </div>
+            <div class="sk-card__row">
+              <div class="sk-card__field"><span class="sk l"></span><span class="sk i"></span></div>
+              <div class="sk-card__field"><span class="sk l"></span><span class="sk i"></span></div>
+            </div>
+            <div class="sk-card__row">
+              <div class="sk-card__field"><span class="sk l"></span><span class="sk i"></span></div>
+              <div class="sk-card__field"><span class="sk l"></span><span class="sk i"></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">card · form</div>
+            <p class="tile__note">dashboard card with field rows. the colon-mark in the corner stays alive while everything else loads.</p>
+          </div>
+          <span class="tile__tag">.sk-card</span>
+        </div>
+      </div>
+
+      <!-- paragraph -->
+      <div class="tile tile--wide">
+        <div class="tile__stage" style="padding: 32px 40px; justify-content: flex-start;">
+          <div class="sk-para">
+            <span class="sk"></span>
+            <span class="sk"></span>
+            <span class="sk"></span>
+            <span class="sk"></span>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">paragraph · prose</div>
+            <p class="tile__note">last line short — feels like prose, not data. for the about page, entry bodies, llm output.</p>
+          </div>
+          <span class="tile__tag">.sk-para</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 — MICRO-INTERACTIONS ============ -->
+  <section class="section">
+    <div class="section__head">
+      <div class="section__num">04 — micro-interactions</div>
+      <div>
+        <h2 class="section__title">small moments. earned keyframes.</h2>
+        <p class="section__sub">each transition is tied to a state change a real user actually makes. hover here, click there, focus the field. nothing animates without a reason.</p>
+      </div>
+    </div>
+
+    <div class="grid grid--2">
+      <!-- save -->
+      <div class="tile">
+        <div class="tile__stage" style="flex-direction: column; gap: 14px;">
+          <button class="mi-btn" id="saveBtn">
+            <span class="ripple"></span>
+            <span class="label-default">save profile →</span>
+            <span class="label-saved">saved</span>
+          </button>
+          <span style="font-family:var(--mono); font-size:10.5px; color:var(--muted); letter-spacing:0.06em;">click — note the colon-dot ripple</span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">save · success</div>
+            <p class="tile__note">dot ripples from the centre, label crossfades. no checkmark — the dot is the confirmation.</p>
+          </div>
+          <span class="tile__tag">.mi-btn</span>
+        </div>
+      </div>
+
+      <!-- field focus -->
+      <div class="tile">
+        <div class="tile__stage" style="flex-direction: column; gap: 10px;">
+          <div class="mi-field">
+            <span class="mi-field__label">your handle</span>
+            <div class="mi-field__wrap">
+              <input type="text" value="koshik" />
+              <span class="mi-field__rail"></span>
+            </div>
+          </div>
+          <span style="font-family:var(--mono); font-size:10.5px; color:var(--muted); letter-spacing:0.06em;">click the field — the rail draws</span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">field · focus</div>
+            <p class="tile__note">a 1.5px accent rail draws across the bottom on focus. the border colours in.</p>
+          </div>
+          <span class="tile__tag">.mi-field</span>
+        </div>
+      </div>
+
+      <!-- checkbox -->
+      <div class="tile">
+        <div class="tile__stage" style="flex-direction: column; gap: 14px;">
+          <label class="mi-check">
+            <input type="checkbox" checked>
+            <span class="mi-check__box"></span>
+            <span>show in feed</span>
+          </label>
+          <label class="mi-check">
+            <input type="checkbox">
+            <span class="mi-check__box"></span>
+            <span>email weekly digest</span>
+          </label>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">checkbox · settle</div>
+            <p class="tile__note">accent square scales in with a slight overshoot. honors the brand's no-checkmarks rule — just the dot, blown up.</p>
+          </div>
+          <span class="tile__tag">.mi-check</span>
+        </div>
+      </div>
+
+      <!-- entry hover -->
+      <div class="tile">
+        <div class="tile__stage" style="flex-direction: column; gap: 8px; align-items: stretch; padding: 16px 16px;">
+          <div class="mi-entry">
+            <div class="mi-entry__date">2026.04</div>
+            <div class="mi-entry__line">
+              <span class="mi-entry__dot"></span>
+              <span class="mi-entry__title">built sage on solana.</span>
+            </div>
+          </div>
+          <div class="mi-entry">
+            <div class="mi-entry__date">2026.02</div>
+            <div class="mi-entry__line">
+              <span class="mi-entry__dot"></span>
+              <span class="mi-entry__title">built zhentan.</span>
+            </div>
+          </div>
+          <div class="mi-entry">
+            <div class="mi-entry__date">2025.11</div>
+            <div class="mi-entry__line">
+              <span class="mi-entry__dot"></span>
+              <span class="mi-entry__title">talk at devconnect.</span>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">entry · hover</div>
+            <p class="tile__note">the dot grows and turns accent on hover. you've selected a moment in time.</p>
+          </div>
+          <span class="tile__tag">.mi-entry</span>
+        </div>
+      </div>
+
+      <!-- tab switch -->
+      <div class="tile tile--wide">
+        <div class="tile__stage" style="flex-direction: column; gap: 18px; align-items: flex-start; padding: 28px 36px;">
+          <div class="mi-tabs" id="miTabs">
+            <button class="mi-tabs__btn is-on" data-tab="0">profile<span class="colon">:</span></button>
+            <button class="mi-tabs__btn" data-tab="1">appearance<span class="colon">:</span></button>
+            <button class="mi-tabs__btn" data-tab="2">highlights<span class="colon">:</span></button>
+            <span class="mi-tabs__rail" id="miTabRail"></span>
+          </div>
+          <span style="font-family:var(--mono); font-size:10.5px; color:var(--muted); letter-spacing:0.06em;">click between tabs — the rail glides, the colon arrives</span>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">tabs · glide</div>
+            <p class="tile__note">accent rail tweens between tabs; the colon fades up on the active one.</p>
+          </div>
+          <span class="tile__tag">.mi-tabs</span>
+        </div>
+      </div>
+
+      <!-- modal enter -->
+      <div class="tile tile--wide">
+        <div class="tile__stage" style="padding: 14px;">
+          <div class="mi-modal-stage">
+            <div class="mi-modal">
+              <h4 class="mi-modal__title">edit highlight<span class="colon">.</span></h4>
+              <p class="mi-modal__sub">a moment on your timeline.</p>
+              <div class="mi-modal__rows">
+                <span class="sk"></span>
+                <span class="sk"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tile__cap">
+          <div>
+            <div class="tile__name">modal · enter</div>
+            <p class="tile__note">slight rise + scale, and an accent hairline draws along the top edge. opens like a page, not a window.</p>
+          </div>
+          <span class="tile__tag">.mi-modal</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- the usage strip -->
+    <div class="usage">
+      <p class="usage__lead">five entries from a real timeline. every dot, rail, and detail is in motion — but nothing fights for your attention. the page is calm; the present, alone, has a pulse.</p>
+      <div class="usage__rail">
+        <div class="usage__entry">
+          <span class="usage__entry__dot" aria-hidden="true"></span>
+          <span class="usage__entry__date">2026.05</span>
+          <span class="usage__entry__title">started logr. a small notebook for the rest of my life.</span>
+          <span class="usage__entry__note">now</span>
+        </div>
+        <div class="usage__entry">
+          <span class="usage__entry__dot" aria-hidden="true"></span>
+          <span class="usage__entry__date">2024.11</span>
+          <span class="usage__entry__title">presented agentic payments at devconnect.</span>
+          <span class="usage__entry__note">recent</span>
+        </div>
+        <div class="usage__entry">
+          <span class="usage__entry__dot" aria-hidden="true" style="width:7px;height:7px;opacity:0.55;"></span>
+          <span class="usage__entry__date">2019.06</span>
+          <span class="usage__entry__title">moved to bengaluru. knew no one.</span>
+          <span class="usage__entry__note">mid</span>
+        </div>
+        <div class="usage__entry">
+          <span class="usage__entry__dot" aria-hidden="true" style="width:5px;height:5px;opacity:0.4;left:-26px;top:9px;"></span>
+          <span class="usage__entry__date">2018</span>
+          <span class="usage__entry__title">authored a book.</span>
+          <span class="usage__entry__note">past</span>
+        </div>
+        <div class="usage__entry">
+          <span class="usage__entry__dot" aria-hidden="true" style="width:5px;height:5px;opacity:0.4;left:-26px;top:9px;"></span>
+          <span class="usage__entry__date">1992.04</span>
+          <span class="usage__entry__title">born.</span>
+          <span class="usage__entry__note">past</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="foot">
+    <span><span class="wm"><span class="wm__mark" aria-hidden="true"><span class="d-top"></span><span class="d-bot"></span></span><span class="wm__text">logr</span></span> &nbsp;— motion kit · v1.0</span>
+    <span>respect prefers-reduced-motion <span style="color:var(--user-accent)">·</span> always</span>
+    <span><a href="Brand Kit.html">↩ brand kit</a> &nbsp; <a href="dashboard.html">dashboard →</a></span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  // ---- speed control: multiplies all animation durations ----
+  const speedBtns = document.querySelectorAll('#speedCtl .speed__btn');
+  const setSpeed = mult => {
+    document.querySelectorAll('*').forEach(el => {
+      // skip — only adjust elements with computed animation
+      const anim = getComputedStyle(el).animationName;
+      if (!anim || anim === 'none') return;
+      el.style.animationDuration = '';
+    });
+    // simpler: set a class on body and override via root
+    document.body.dataset.speed = mult;
+    const factor = mult === 'slow' ? 1.8 : mult === 'fast' ? 0.55 : 1;
+    // walk and rewrite durations
+    document.querySelectorAll('*').forEach(el => {
+      const cs = getComputedStyle(el);
+      if (cs.animationName === 'none') return;
+      const baseAttr = el.dataset.baseDur;
+      const base = baseAttr || cs.animationDuration;
+      if (!baseAttr) el.dataset.baseDur = base;
+      const durs = base.split(',').map(d => {
+        const ms = parseFloat(d) * (d.includes('ms') ? 1 : 1000);
+        return (ms * factor) + 'ms';
+      }).join(', ');
+      el.style.animationDuration = durs;
+    });
+  };
+  speedBtns.forEach(b => b.addEventListener('click', () => {
+    speedBtns.forEach(x => x.classList.toggle('is-on', x === b));
+    setSpeed(b.dataset.speed);
+  }));
+
+  // ---- replay: drop tile ----
+  const dropReplay = document.getElementById('dropReplay');
+  const dropTile = document.getElementById('dropTile');
+  if (dropReplay && dropTile) {
+    dropReplay.addEventListener('click', e => {
+      e.preventDefault();
+      const mark = dropTile.querySelector('.m--drop');
+      mark.classList.add('replay');
+      // force reflow
+      void mark.offsetWidth;
+      mark.classList.remove('replay');
+    });
+  }
+
+  // ---- replay: wordmark ----
+  const wmReplay = document.getElementById('wmReplay');
+  const wmDraw = document.getElementById('wmDraw');
+  if (wmReplay && wmDraw) {
+    wmReplay.addEventListener('click', e => {
+      e.preventDefault();
+      const fresh = wmDraw.cloneNode(true);
+      wmDraw.parentNode.replaceChild(fresh, wmDraw);
+      // rewire id so future replays still work
+      fresh.id = 'wmDraw';
+    });
+  }
+
+  // ---- live timestamp ----
+  const stamp = document.getElementById('stampDate');
+  if (stamp) {
+    const pad = n => String(n).padStart(2, '0');
+    setInterval(() => {
+      const d = new Date();
+      stamp.textContent = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }, 1000);
+  }
+
+  // ---- progress bar percentage readout ----
+  const barPct = document.getElementById('barPct');
+  if (barPct) {
+    let pct = 0;
+    setInterval(() => {
+      pct = (pct + 3) % 105;
+      if (pct > 100) pct = 0;
+      barPct.textContent = pct + '%';
+    }, 70);
+  }
+
+  // ---- save button ripple ----
+  const saveBtn = document.getElementById('saveBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      saveBtn.classList.add('is-saved');
+      setTimeout(() => saveBtn.classList.remove('is-saved'), 1400);
+    });
+  }
+
+  // ---- tabs ----
+  const miTabs = document.getElementById('miTabs');
+  const miTabRail = document.getElementById('miTabRail');
+  if (miTabs && miTabRail) {
+    const positionRail = (btn) => {
+      const r = btn.getBoundingClientRect();
+      const p = miTabs.getBoundingClientRect();
+      miTabRail.style.left = (r.left - p.left) + 'px';
+      miTabRail.style.width = r.width + 'px';
+    };
+    const initial = miTabs.querySelector('.is-on');
+    requestAnimationFrame(() => positionRail(initial));
+    window.addEventListener('resize', () => {
+      const cur = miTabs.querySelector('.is-on');
+      if (cur) positionRail(cur);
+    });
+    miTabs.addEventListener('click', e => {
+      const b = e.target.closest('.mi-tabs__btn');
+      if (!b) return;
+      miTabs.querySelectorAll('.mi-tabs__btn').forEach(x => x.classList.toggle('is-on', x === b));
+      positionRail(b);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
