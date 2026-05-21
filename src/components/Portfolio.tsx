@@ -16,6 +16,7 @@ import { isImageIcon } from "@/lib/icon";
 import { Lightbox } from "@/components/ui/Lightbox";
 import { Mark } from "@/components/Mark";
 import { LAYOUT_ICONS } from "@/components/layout-icons";
+import { ChatWidget } from "@/components/ChatWidget";
 
 const EASE = [0.2, 0.8, 0.2, 1] as [number, number, number, number];
 const VIEWPORT = { once: true, amount: 0.2, margin: "0px 0px -6% 0px" } as const;
@@ -215,12 +216,13 @@ function Picker({
 }
 
 // ---------- ROOT ----------
-export default function Portfolio({ profile }: { profile: ProfileDTO }) {
+export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDTO; chatEnabled?: boolean }) {
   // The owner's saved theme (from the DB) is authoritative. The floating
   // picker only sets an in-session preview override (derived, no effect), so
   // it never overrides the saved default on the next load.
   const [preview, setPreview] = useState<{ palette?: string; layout?: string }>({});
   const [filter, setFilter] = useState("all");
+  const [chatOpen, setChatOpen] = useState(false);
 
   const palette = preview.palette ?? profile.theme.palette;
   const layout = preview.layout ?? profile.theme.layout;
@@ -271,6 +273,18 @@ export default function Portfolio({ profile }: { profile: ProfileDTO }) {
           <header className="bar">
             <span className="bar__brand"><Mark />logr</span>
             <nav className="bar__util" aria-label="utilities">
+              {chatEnabled && (
+                <button className="bar__ask" onClick={() => setChatOpen((o) => !o)} aria-label={`ask about ${profile.name}`}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
+                    <rect x="3" y="5.5" width="10" height="7.6" rx="2.2" />
+                    <circle cx="6.1" cy="9.3" r="0.95" fill="currentColor" stroke="none" />
+                    <circle cx="9.9" cy="9.3" r="0.95" fill="currentColor" stroke="none" />
+                    <line x1="8" y1="3" x2="8" y2="5.5" strokeLinecap="round" />
+                    <circle cx="8" cy="2.4" r="1" fill="currentColor" stroke="none" />
+                  </svg>
+                  ask me anything
+                </button>
+              )}
               <a href={`/${profile.username}/llm.txt`}>llm.txt</a>
               <a href="#colophon">about</a>
             </nav>
@@ -382,6 +396,9 @@ export default function Portfolio({ profile }: { profile: ProfileDTO }) {
         </div>
 
         <Picker palette={palette} layout={layout} onPalette={pickPalette} onLayout={pickLayout} />
+        {chatEnabled && (
+          <ChatWidget username={profile.username} name={profile.name} open={chatOpen} onClose={() => setChatOpen(false)} />
+        )}
       </div>
     </MotionConfig>
   );

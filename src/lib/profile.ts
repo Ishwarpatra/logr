@@ -16,6 +16,7 @@ export type HighlightDTO = {
 };
 
 export type ProfileDTO = {
+  id: string;
   username: string;
   name: string;
   handle: string;
@@ -50,6 +51,7 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
   if (!row) return null;
 
   return {
+    id: row.id,
     username: row.username,
     name: row.name,
     handle: row.handle,

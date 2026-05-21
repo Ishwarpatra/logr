@@ -29,7 +29,8 @@ model Profile {
   socials   String // JSON: [{ label, href }]
   theme     String // JSON: { palette, fonts, rounded, accentOverride, postStyle, dotStyle, photoHover, dark }
 
-  highlights Highlight[]
+  highlights   Highlight[]
+  chatMessages ChatMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -68,4 +69,17 @@ model Image {
   position    Int
 
   @@index([highlightId, position])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sessionId String // groups a visitor's conversation
+  role      String // user | assistant
+  content   String
+  visitor   String? // hashed IP, for light abuse analytics (never raw)
+  createdAt DateTime @default(now())
+
+  @@index([profileId, createdAt])
 }

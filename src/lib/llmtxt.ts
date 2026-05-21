@@ -1,13 +1,18 @@
 import { TAG_META } from "@/lib/theme";
+import { isImageIcon } from "@/lib/icon";
 import type { ProfileDTO } from "@/lib/profile";
 
 /**
  * Generate the machine-readable `llm.txt` for a profile — a structured,
  * plain-text context file any AI agent can consume. This is logr's moat:
  * a portfolio that an LLM can read and answer questions about directly.
+ *
+ * Image URLs (avatar, per-highlight photos, image logos) are included and
+ * made absolute, so a (multimodal) agent can reference or fetch them.
  */
 export function generateLlmTxt(profile: ProfileDTO, origin: string): string {
   const url = `${origin}/${profile.username}`;
+  const abs = (u: string) => (/^https?:\/\//.test(u) ? u : `${origin}${u}`);
   const lines: string[] = [];
 
   lines.push(`# ${profile.name}`);
@@ -21,6 +26,7 @@ export function generateLlmTxt(profile: ProfileDTO, origin: string): string {
   if (profile.status) lines.push(`- Currently: ${profile.status}`);
   if (profile.location) lines.push(`- Location: ${profile.location}`);
   lines.push(`- Portfolio: ${url}`);
+  if (profile.avatarUrl) lines.push(`- Avatar: ${abs(profile.avatarUrl)}`);
   for (const s of profile.socials) lines.push(`- ${s.label}: ${s.href}`);
   lines.push("");
 
@@ -43,6 +49,8 @@ export function generateLlmTxt(profile: ProfileDTO, origin: string): string {
     lines.push(`- Type: ${tagLabel}`);
     lines.push(`- Details: ${h.body.replace(/\n/g, " ")}`);
     if (h.link) lines.push(`- Link: ${h.link.label} (${h.link.href})`);
+    if (isImageIcon(h.icon)) lines.push(`- Logo: ${abs(h.icon)}`);
+    if (h.images.length) lines.push(`- Photos: ${h.images.map(abs).join(", ")}`);
     lines.push("");
   }
 
