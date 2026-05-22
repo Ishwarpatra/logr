@@ -6,6 +6,11 @@ import { prisma } from "@/lib/db";
 import { PRIMARY_USERNAME } from "@/lib/profile";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 import { unfurl } from "@/lib/unfurl";
+import { generateText } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { isChatEnabled, CHAT_MODEL } from "@/lib/chat";
+import { buildNarratePrompt, parseNarrated } from "@/lib/narrate";
+import { parseVideoUrl, parseTweetUrl } from "@/lib/video";
 import {
   checkPassword,
   createSession,
@@ -160,6 +165,115 @@ export async function deleteEventAction(id: string) {
   await prisma.event.delete({ where: { id } });
   revalidateAll();
 }
+
+export type ReviewEvent = {
+  dateOn: string;
+  fullDate: boolean;
+  title: string;
+  tags: string[];
+  featured: boolean;
+  body: string;
+  media: MediaInput[];
+};
+
+/** Turn URLs from the narrative into media (tweet / video embed / link card). */
+async function resolveMedia(links: string[]): Promise<MediaInput[]> {
+  const out: MediaInput[] = [];
+  for (const url of links.slice(0, 4)) {
+    if (parseTweetUrl(url)) {
+      out.push({ kind: "tweet", url, poster: null, provider: "x", title: null });
+      continue;
+    }
+    const v = parseVideoUrl(url);
+    if (v) {
+      out.push({ kind: "video", url: v.embedUrl, poster: v.poster, provider: v.provider, title: null });
+      continue;
+    }
+    try {
+      const u = await unfurl(url);
+      out.push({ kind: "link", url, poster: u.poster, provider: u.provider, title: u.title });
+    } catch {
+      out.push({ kind: "link", url, poster: null, provider: null, title: url });
+    }
+  }
+  return out;
+}
+
+/** Extract structured events (with link/video/tweet media) from a narrative. */
+export async function narrateEventsAction(text: string): Promise<ReviewEvent[]> {
+  await requireAuth();
+  if (!isChatEnabled()) throw new Error("Chat is not configured.");
+  if (!text.trim()) return [];
+  const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! });
+  const { text: out } = await generateText({
+    model: openrouter.chat(CHAT_MODEL),
+    system:
+      "You output ONLY a raw JSON object — no prose, no markdown fences, no commentary. " +
+      'Shape: {"events":[{"dateOn":"YYYY-MM-DD","fullDate":boolean,"title":string,"tags":string[],"featured":boolean,"body":string,"links":string[]}]}. ' +
+      "tags must be a subset of: work, milestone, talk, side_quest, writing. links are full https URLs mentioned for the event.",
+    prompt: buildNarratePrompt(text.slice(0, 6000)),
+    temperature: 0.2,
+  });
+  const parsed = parseNarrated(out);
+  return Promise.all(
+    parsed.map(async (e) => ({
+      dateOn: e.dateOn,
+      fullDate: e.fullDate,
+      title: e.title,
+      tags: e.tags,
+      featured: e.featured,
+      body: e.body,
+      media: await resolveMedia(e.links),
+    }))
+  );
+}
+
+/** Bulk-insert events extracted from a narrative (newest get the top slots). */
+export async function insertEventsAction(events: ReviewEvent[]) {
+  await requireAuth();
+  const clean = events
+    .filter((e) => e.title?.trim() && /^\d{4}-\d{2}-\d{2}$/.test(e.dateOn))
+    .slice(0, 50);
+  if (!clean.length) return;
+  const profile = await prisma.profile.findUniqueOrThrow({
+    where: { username: PRIMARY_USERNAME },
+    select: { id: true },
+  });
+  const agg = await prisma.event.aggregate({ where: { profileId: profile.id }, _min: { position: true } });
+  let pos = (agg._min.position ?? 0) - clean.length;
+  await prisma.$transaction(
+    clean.map((e) =>
+      prisma.event.create({
+        data: {
+          profileId: profile.id,
+          dateOn: e.dateOn,
+          fullDate: !!e.fullDate,
+          title: e.title.trim(),
+          tags: e.tags.filter((t) => TAG_OPTIONS_SET.has(t)),
+          featured: !!e.featured,
+          body: e.body ?? "",
+          icon: null,
+          linkLabel: null,
+          linkHref: null,
+          position: pos++,
+          media: {
+            create: (e.media ?? []).slice(0, 8).map((m, i) => ({
+              kind: m.kind,
+              url: m.url || null,
+              poster: m.poster,
+              provider: m.provider,
+              title: m.title,
+              position: i,
+            })),
+          },
+        },
+      })
+    )
+  );
+  revalidateAll();
+}
+
+const TAG_OPTIONS_SET = new Set(["work", "milestone", "talk", "side_quest", "writing"]);
 
 /** Fetch Open Graph data for a pasted link, to build a link/article card. */
 export async function unfurlLinkAction(url: string): Promise<MediaInput> {

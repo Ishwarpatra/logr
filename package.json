@@ -15,6 +15,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.192",
     "@aws-sdk/client-s3": "^3.1050.0",
     "@openrouter/ai-sdk-provider": "^2.9.0",
     "@prisma/client": "^6.19.3",
@@ -24,7 +25,8 @@
     "prisma": "^6.19.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-tweet": "^3.3.0"
+    "react-tweet": "^3.3.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
