@@ -729,19 +729,20 @@
 .entry__link-card__site { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; color: var(--muted); }
 
 /* tweet embeds (react-tweet) — themed to the brand palette/type */
-.entry__tweets { margin-top: 16px; max-width: 520px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; align-items: start; }
-.entry__tweet { max-width: 100%; min-width: 0; }
+.entry__tweets { margin-top: 16px; max-width: 520px; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 8px; }
+.entry__tweet { flex: 1 1 240px; min-width: 0; max-width: 256px; }
+.entry__tweet:only-child { flex-basis: 340px; max-width: 340px; }
 .logr .entry__tweet .react-tweet-theme {
   --tweet-container-margin: 0;
   --tweet-font-family: var(--sans);
-  --tweet-body-font-size: 14px;
-  --tweet-body-line-height: 1.4;
-  --tweet-header-font-size: 14px;
+  --tweet-body-font-size: 13px;
+  --tweet-body-line-height: 1.38;
+  --tweet-header-font-size: 13px;
   --tweet-header-line-height: 1.2;
-  --tweet-quoted-body-font-size: 13px;
-  --tweet-info-font-size: 13px;
-  --tweet-actions-font-size: 13px;
-  --tweet-replies-font-size: 13px;
+  --tweet-quoted-body-font-size: 12.5px;
+  --tweet-info-font-size: 12px;
+  --tweet-actions-font-size: 12px;
+  --tweet-replies-font-size: 12px;
   --tweet-font-color: var(--ink);
   --tweet-font-color-secondary: var(--muted);
   --tweet-bg-color: var(--paper);
