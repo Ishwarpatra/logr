@@ -125,6 +125,13 @@
 .now__label { font-family: var(--mono); font-size: 10.5px; color: var(--user-accent); letter-spacing: 0.1em; flex-shrink: 0; }
 .now__body { font-family: var(--serif); font-size: 15.5px; line-height: 1.45; color: var(--ink); }
 
+/* ---------- sort control ---------- */
+.sort { display: flex; align-items: baseline; gap: 14px; margin-top: 16px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; }
+.sort__label { color: var(--faint); text-transform: lowercase; }
+.sort__opt { color: var(--muted); padding-bottom: 2px; border-bottom: 0.5px solid transparent; transition: color 160ms ease, border-color 160ms ease; }
+.sort__opt:hover { color: var(--ink); }
+.sort__opt[aria-current="true"] { color: var(--user-accent); border-color: var(--user-accent); }
+
 /* ---------- tag filter (editorial tab bar) ---------- */
 .filters {
   display: flex; flex-wrap: wrap; align-items: flex-end; gap: 2px 20px;
@@ -155,6 +162,8 @@
 /* tighten the gap when the filter row sits directly above */
 .filters + .timeline { padding-top: 28px; }
 .filters + .timeline::before { top: 48px; }
+.sort + .timeline { padding-top: 24px; }
+.sort + .timeline::before { top: 44px; }
 
 .year { display: flex; align-items: center; gap: 16px; margin: 28px 0 18px; margin-left: -28px; }
 .year:first-of-type { margin-top: 0; }

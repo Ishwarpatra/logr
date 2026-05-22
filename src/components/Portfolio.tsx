@@ -299,6 +299,17 @@ function Picker({
   );
 }
 
+// sortable date key: the picked ISO date, else the year (legacy entries).
+function dateKey(e: EventDTO): string {
+  return e.dateOn ?? `${String(e.year).padStart(4, "0")}-00-00`;
+}
+type SortKey = "newest" | "oldest" | "curated";
+const SORTS: { v: SortKey; label: string }[] = [
+  { v: "newest", label: "newest" },
+  { v: "oldest", label: "oldest" },
+  { v: "curated", label: "curated" },
+];
+
 // ---------- ROOT ----------
 export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDTO; chatEnabled?: boolean }) {
   // The owner's saved theme (from the DB) is authoritative. The floating
@@ -311,6 +322,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
   const [chatOpen, setChatOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortKey>("newest");
 
   const palette = preview.palette ?? profile.theme.palette;
   const layout = preview.layout ?? profile.theme.layout;
@@ -355,7 +367,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
       window.removeEventListener("resize", onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [layout, filter]);
+  }, [layout, filter, sort]);
   const pickPalette = (p: string) => setPreview((o) => ({ ...o, palette: p }));
   const pickLayout = (l: string) => setPreview((o) => ({ ...o, layout: l }));
 
@@ -375,13 +387,25 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
     return [...(hasFeatured ? ["highlights"] : []), "all", ...distinct];
   }, [profile.events, hasFeatured]);
 
-  // group entries by year, preserving reverse-chronological order.
-  // recency is taken from the full-list position so dot sizing stays meaningful
-  // even when a filter is applied; year markers only show when non-empty.
+  // chronological rank (newest = 0) drives recency/dot sizing + the "now"
+  // accent, independent of the chosen display order.
+  const chronoRank = useMemo(() => {
+    const ids = [...profile.events].sort((a, b) => dateKey(b).localeCompare(dateKey(a))).map((e) => e.id);
+    return new Map(ids.map((id, i) => [id, i]));
+  }, [profile.events]);
+
+  // order by the chosen sort (date desc/asc, or the owner's curated drag order),
+  // then group by year; year markers only show when non-empty.
   const rows = useMemo(() => {
     const total = profile.events.length;
-    const visible = profile.events
-      .map((h, i) => ({ h, recency: recencyClass(i, total) }))
+    const ordered =
+      sort === "curated"
+        ? profile.events
+        : [...profile.events].sort((a, b) =>
+            sort === "newest" ? dateKey(b).localeCompare(dateKey(a)) : dateKey(a).localeCompare(dateKey(b))
+          );
+    const visible = ordered
+      .map((h) => ({ h, recency: recencyClass(chronoRank.get(h.id) ?? 0, total) }))
       .filter(({ h }) =>
         filter === "all" ? true : filter === "highlights" ? h.featured : h.tags.includes(filter)
       );
@@ -398,7 +422,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
       out.push({ type: "entry", h, recency });
     });
     return out;
-  }, [profile.events, filter]);
+  }, [profile.events, filter, sort, chronoRank]);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -490,6 +514,24 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
                 </button>
               ))}
             </nav>
+          )}
+
+          {/* sort */}
+          {profile.events.length > 1 && (
+            <div className="sort" role="group" aria-label="sort order">
+              <span className="sort__label">sort</span>
+              {SORTS.map((s) => (
+                <button
+                  key={s.v}
+                  type="button"
+                  className="sort__opt"
+                  aria-current={sort === s.v}
+                  onClick={() => setSort(s.v)}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           )}
 
           {/* timeline */}

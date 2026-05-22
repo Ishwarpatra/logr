@@ -15,12 +15,14 @@ import { TAG_META } from "@/lib/theme";
 import { isImageIcon } from "@/lib/icon";
 import { uploadImage } from "@/lib/upload";
 import { parseVideoUrl, parseTweetUrl } from "@/lib/video";
+import { DatePicker } from "./DatePicker";
 import type { MediaItem } from "@/lib/profile";
 
 export type EditableEvent = {
   id: string;
-  date: string;
-  year: number;
+  dateOn: string;
+  date: string; // derived display, for the row
+  fullDate: boolean;
   title: string;
   tags: string[];
   featured: boolean;
@@ -33,12 +35,20 @@ export type EditableEvent = {
 };
 
 const TAG_OPTIONS = ["work", "milestone", "talk", "side_quest", "writing"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const todayISO = () => new Date().toISOString().slice(0, 10);
+/** preview the timeline display from an ISO date (year is derived server-side) */
+function fmtISO(iso: string, full: boolean): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const mon = MONTHS[(m || 1) - 1];
+  return full ? `${mon} ${d}, ${y}` : `${mon} ${y}`;
+}
 
 function emptyDraft(position: number): EventInput {
-  return { date: "", year: new Date().getFullYear(), title: "", tags: ["work"], featured: true, body: "", icon: null, linkLabel: null, linkHref: null, position, media: [] };
+  return { dateOn: todayISO(), fullDate: false, title: "", tags: ["work"], featured: true, body: "", icon: null, linkLabel: null, linkHref: null, position, media: [] };
 }
 function toDraft(e: EditableEvent): EventInput {
-  return { id: e.id, date: e.date, year: e.year, title: e.title, tags: e.tags, featured: e.featured, body: e.body, icon: e.icon, linkLabel: e.linkLabel, linkHref: e.linkHref, position: e.position, media: e.media };
+  return { id: e.id, dateOn: e.dateOn, fullDate: e.fullDate, title: e.title, tags: e.tags, featured: e.featured, body: e.body, icon: e.icon, linkLabel: e.linkLabel, linkHref: e.linkHref, position: e.position, media: e.media };
 }
 function letter(s: string) { return (s.trim()[0] || "·").toLowerCase(); }
 
@@ -119,18 +129,22 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
           <input type="text" value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="built something good." autoFocus />
         </div>
 
-        <div className="field-row">
-          <div className="field">
-            <label className="field__label">date</label>
-            <input type="text" value={draft.date} onChange={(e) => set("date", e.target.value)} placeholder="2026.04" />
-            <span className="field__hint">display text</span>
-          </div>
-          <div className="field">
-            <label className="field__label">year</label>
-            <input type="number" value={draft.year} onChange={(e) => set("year", Number(e.target.value))} />
-            <span className="field__hint">for sorting</span>
-          </div>
+        <div className="field">
+          <label className="field__label">date</label>
+          <DatePicker
+            value={draft.dateOn || null}
+            onChange={(iso) => setDraft((d) => ({ ...d, dateOn: iso ?? "" }))}
+          />
+          <span className="field__hint">
+            {draft.dateOn ? `shows on your timeline as “${fmtISO(draft.dateOn, draft.fullDate)}”` : "pick a date"}
+          </span>
         </div>
+
+        <label className="check">
+          <input type="checkbox" checked={draft.fullDate} onChange={(e) => set("fullDate", e.target.checked)} />
+          <span className="check__box" />
+          <span>show full date <span className="field__hint">— include the day</span></span>
+        </label>
 
         <div className="field">
           <span className="field__label">tags</span>
@@ -223,7 +237,7 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
 
         <div className="modal__foot">
           <button type="button" className="btn btn--ghost" onClick={onClose}>cancel</button>
-          <button type="button" className="btn btn--primary" onClick={submit} disabled={pending || !draft.title.trim()}>
+          <button type="button" className="btn btn--primary" onClick={submit} disabled={pending || !draft.title.trim() || !draft.dateOn}>
             {pending ? "saving…" : "save event →"}
           </button>
         </div>

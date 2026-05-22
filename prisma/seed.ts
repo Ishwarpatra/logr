@@ -54,14 +54,21 @@ async function main() {
     },
   });
 
+  const MON: Record<string, number> = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
+  const seedDateOn = (date: string, year: number) => {
+    const m = date.match(/^([A-Z][a-z]{2})\s+(\d{4})$/); // "Apr 2026"
+    const mo = m ? MON[m[1]] : 1;
+    const y = m ? Number(m[2]) : year;
+    return `${y}-${String(mo).padStart(2, "0")}-01`;
+  };
+
   for (let i = 0; i < HIGHLIGHTS.length; i++) {
     const h = HIGHLIGHTS[i];
     await prisma.event.create({
       data: {
         id: h.id,
         profileId: profile.id,
-        date: h.date,
-        year: h.year,
+        dateOn: seedDateOn(h.date, h.year),
         title: h.title,
         tags: [h.tag],
         featured: true,

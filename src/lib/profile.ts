@@ -1,6 +1,15 @@
 import { prisma } from "@/lib/db";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** Derive the display string + year from an ISO date (the single source).
+ *  fullDate shows the day ("Apr 15, 2026"); otherwise month + year. */
+function deriveDate(dateOn: string, fullDate: boolean): { date: string; year: number } {
+  const [y, m, d] = dateOn.split("-").map(Number);
+  const mon = MONTHS_SHORT[(m || 1) - 1];
+  return { date: fullDate ? `${mon} ${d}, ${y}` : `${mon} ${y}`, year: y };
+}
+
 export type Social = { label: string; href: string };
 
 export type MediaItem = {
@@ -13,11 +22,13 @@ export type MediaItem = {
 
 export type EventDTO = {
   id: string;
-  date: string;
-  year: number;
+  dateOn: string; // canonical ISO date (the single source)
+  date: string; // derived display string, e.g. "Nov 2025"
+  year: number; // derived
   title: string;
   tags: string[];
   featured: boolean; // shown in the page's "highlights" view
+  fullDate: boolean; // editor toggle: show the exact day
   body: string;
   icon: string | null; // optional glyph/emoji for the timeline dot
   link: { label: string; href: string } | null;
@@ -73,11 +84,12 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
     theme: { ...DEFAULT_THEME, ...parseJSON<Partial<Theme>>(row.theme, {}) },
     events: row.events.map((e) => ({
       id: e.id,
-      date: e.date,
-      year: e.year,
+      dateOn: e.dateOn,
+      ...deriveDate(e.dateOn, e.fullDate),
       title: e.title,
       tags: e.tags,
       featured: e.featured,
+      fullDate: e.fullDate,
       body: e.body,
       icon: e.icon,
       link: e.linkHref ? { label: e.linkLabel ?? e.linkHref, href: e.linkHref } : null,

@@ -17,8 +17,9 @@ export default async function AdminPage() {
   // Events arrive sorted by position asc; expose a contiguous index.
   const events = profile.events.map((e, i) => ({
     id: e.id,
+    dateOn: e.dateOn,
     date: e.date,
-    year: e.year,
+    fullDate: e.fullDate,
     title: e.title,
     tags: e.tags,
     featured: e.featured,

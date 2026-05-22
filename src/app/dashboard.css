@@ -83,7 +83,7 @@
 /* field */
 .dash .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
 .dash .field__label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; color: var(--muted); }
-.dash .field input[type="text"], .dash .field input[type="url"], .dash .field input[type="number"], .dash .field textarea, .dash .field select {
+.dash .field input[type="text"], .dash .field input[type="url"], .dash .field input[type="number"], .dash .field input[type="date"], .dash .field textarea, .dash .field select {
   font-family: var(--sans); font-size: 15px; color: var(--ink); background: transparent; border: 0.5px solid var(--rule-strong);
   padding: 11px 14px; width: 100%; outline: none; transition: border-color 180ms ease, box-shadow 180ms ease; line-height: 1.5; border-radius: 7px;
 }
@@ -259,3 +259,42 @@
 .dash .field-video input { flex: 1; font-family: var(--sans); font-size: 14px; color: var(--ink); background: transparent; border: 0.5px solid var(--rule-strong); border-radius: 7px; padding: 9px 12px; outline: none; transition: border-color 160ms ease; }
 .dash .field-video input:focus { border-color: var(--user-accent); }
 .dash .field-video .btn { flex-shrink: 0; }
+
+/* date picker (event editor) */
+.dash .dp { position: relative; }
+.dash .dp__trigger {
+  display: inline-flex; align-items: center; gap: 9px; width: 100%;
+  font-family: var(--sans); font-size: 15px; color: var(--ink); background: transparent;
+  border: 0.5px solid var(--rule-strong); border-radius: 7px; padding: 11px 14px; cursor: pointer; text-align: left;
+  transition: border-color 160ms ease;
+}
+.dash .dp__trigger:hover { border-color: var(--ink); }
+.dash .dp__icon { color: var(--muted); flex-shrink: 0; }
+.dash .dp__value--ph { color: var(--faint); }
+.dash .dp__pop {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; width: 282px;
+  background: var(--paper); border: 0.5px solid var(--rule-strong); border-radius: 12px;
+  box-shadow: 0 24px 60px -24px rgba(0,0,0,0.4); padding: 14px; animation: dp-in 140ms ease;
+}
+@keyframes dp-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.dash .dp__head { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+.dash .dp__title { flex: 1; text-align: center; font-family: var(--serif); font-size: 15px; color: var(--ink); letter-spacing: -0.01em; cursor: pointer; transition: color 140ms ease; }
+.dash .dp__title:hover { color: var(--user-accent); }
+.dash .dp__title--static { cursor: default; }
+.dash .dp__title--static:hover { color: var(--ink); }
+.dash .dp__cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.dash .dp__cell { padding: 12px 0; border-radius: 7px; font-family: var(--mono); font-size: 12px; color: var(--ink); transition: background-color 120ms ease, color 120ms ease; }
+.dash .dp__cell:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.dash .dp__cell.is-sel { background: var(--user-accent); color: var(--paper); }
+.dash .dp__nav { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px; color: var(--muted); font-size: 14px; transition: color 140ms ease, background-color 140ms ease; }
+.dash .dp__nav:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.dash .dp__wds, .dash .dp__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dash .dp__wd { text-align: center; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.04em; color: var(--faint); padding: 4px 0; }
+.dash .dp__day { aspect-ratio: 1; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px; font-family: var(--mono); font-size: 12px; color: var(--ink); transition: background-color 120ms ease, color 120ms ease; }
+.dash .dp__day:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.dash .dp__day.is-today { color: var(--user-accent); }
+.dash .dp__day.is-sel { background: var(--user-accent); color: var(--paper); }
+.dash .dp__pad { aspect-ratio: 1; }
+.dash .dp__foot { display: flex; gap: 16px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--rule); }
+.dash .dp__foot button { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; color: var(--user-accent); }
+.dash .dp__foot button:hover { opacity: 0.8; }

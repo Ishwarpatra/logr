@@ -45,7 +45,7 @@ export function generateLlmTxt(profile: ProfileDTO, origin: string): string {
   for (const e of profile.events) {
     const tagLabels = e.tags.map((t) => TAG_META[t]?.label ?? t).join(", ");
     lines.push(`### ${e.title}`);
-    lines.push(`- Date: ${e.date}`);
+    lines.push(`- Date: ${e.date} (${e.dateOn})`);
     if (tagLabels) lines.push(`- Type: ${tagLabels}`);
     if (e.featured) lines.push(`- Highlight: yes`);
     lines.push(`- Details: ${e.body.replace(/\n/g, " ")}`);

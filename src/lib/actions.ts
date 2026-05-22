@@ -97,8 +97,8 @@ export type MediaInput = {
 
 export type EventInput = {
   id?: string;
-  date: string;
-  year: number;
+  dateOn: string;
+  fullDate: boolean;
   title: string;
   tags: string[];
   featured: boolean;
@@ -118,8 +118,8 @@ export async function saveEventAction(input: EventInput) {
   });
 
   const data = {
-    date: input.date,
-    year: input.year,
+    dateOn: input.dateOn,
+    fullDate: input.fullDate,
     title: input.title,
     tags: input.tags,
     featured: input.featured,

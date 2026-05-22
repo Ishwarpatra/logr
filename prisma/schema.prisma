@@ -41,13 +41,13 @@ model Event {
   profileId String
   profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  date     String // display string, e.g. "Nov 2025" or "2014 — 2016"
-  year     Int // for year grouping
+  dateOn   String // the event date, ISO "YYYY-MM-DD"; display + year are derived
   title    String
   tags     String[] @default([]) // work | milestone | talk | side_quest | writing (multiple)
   body     String
   icon     String? // optional glyph/emoji shown on the timeline dot
   featured Boolean  @default(true) // include in the "highlights" view on the page
+  fullDate Boolean  @default(false) // show the exact day on the timeline (else month + year)
 
   linkLabel String?
   linkHref  String?
