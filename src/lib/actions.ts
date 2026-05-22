@@ -86,6 +86,13 @@ export async function updateThemeAction(theme: Partial<Theme>) {
 }
 
 // ---------- EVENTS ----------
+export type MediaInput = {
+  kind: "image" | "video";
+  url: string;
+  poster: string | null;
+  provider: string | null;
+};
+
 export type EventInput = {
   id?: string;
   date: string;
@@ -98,7 +105,7 @@ export type EventInput = {
   linkLabel: string | null;
   linkHref: string | null;
   position: number;
-  images: string[]; // image URLs (0–4)
+  media: MediaInput[]; // images + videos (0–8)
 };
 
 export async function saveEventAction(input: EventInput) {
@@ -121,19 +128,25 @@ export async function saveEventAction(input: EventInput) {
     position: input.position,
   };
 
-  const images = {
-    create: input.images.slice(0, 4).map((url, position) => ({ url: url || null, position })),
+  const media = {
+    create: input.media.slice(0, 8).map((m, position) => ({
+      kind: m.kind,
+      url: m.url || null,
+      poster: m.poster,
+      provider: m.provider,
+      position,
+    })),
   };
 
   if (input.id) {
-    await prisma.image.deleteMany({ where: { eventId: input.id } });
+    await prisma.media.deleteMany({ where: { eventId: input.id } });
     await prisma.event.update({
       where: { id: input.id },
-      data: { ...data, images },
+      data: { ...data, media },
     });
   } else {
     await prisma.event.create({
-      data: { ...data, profileId: profile.id, images },
+      data: { ...data, profileId: profile.id, media },
     });
   }
   revalidateAll();

@@ -27,7 +27,7 @@ export default async function AdminPage() {
     linkLabel: e.link?.label ?? null,
     linkHref: e.link?.href ?? null,
     position: i,
-    images: e.images,
+    media: e.media,
   }));
 
   return <AdminShell profile={profile} events={events} />;

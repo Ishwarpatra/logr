@@ -54,7 +54,7 @@ model Event {
 
   position Int // explicit ordering (reverse-chronological)
 
-  images Image[]
+  media Media[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -62,11 +62,14 @@ model Event {
   @@index([profileId, position])
 }
 
-model Image {
+model Media {
   id       String  @id @default(cuid())
   eventId  String
   event    Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  url      String? // null = empty placeholder slot
+  kind     String  @default("image") // image | video
+  url      String? // image/video file URL, or a provider embed URL; null = empty placeholder
+  poster   String? // thumbnail/poster image for videos
+  provider String? // file | youtube | vimeo | loom (null for plain images)
   position Int
 
   @@index([eventId, position])

@@ -3,6 +3,13 @@ import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 
 export type Social = { label: string; href: string };
 
+export type MediaItem = {
+  kind: "image" | "video";
+  url: string; // image URL, or a provider embed URL for video
+  poster: string | null; // thumbnail for video
+  provider: string | null; // youtube | vimeo | loom (null for images)
+};
+
 export type EventDTO = {
   id: string;
   date: string;
@@ -13,7 +20,7 @@ export type EventDTO = {
   body: string;
   icon: string | null; // optional glyph/emoji for the timeline dot
   link: { label: string; href: string } | null;
-  images: string[]; // real image URLs only (empty placeholder slots dropped)
+  media: MediaItem[]; // images + videos, in order (empty placeholder slots dropped)
 };
 
 export type ProfileDTO = {
@@ -45,7 +52,7 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
     include: {
       events: {
         orderBy: { position: "asc" },
-        include: { images: { orderBy: { position: "asc" } } },
+        include: { media: { orderBy: { position: "asc" } } },
       },
     },
   });
@@ -73,7 +80,14 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
       body: e.body,
       icon: e.icon,
       link: e.linkHref ? { label: e.linkLabel ?? e.linkHref, href: e.linkHref } : null,
-      images: e.images.map((img) => img.url).filter((u): u is string => !!u),
+      media: e.media
+        .filter((m) => !!m.url)
+        .map((m) => ({
+          kind: m.kind === "video" ? ("video" as const) : ("image" as const),
+          url: m.url as string,
+          poster: m.poster,
+          provider: m.provider,
+        })),
     })),
   };
 }

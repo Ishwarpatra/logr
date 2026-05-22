@@ -69,8 +69,9 @@ async function main() {
         linkLabel: h.linkLabel,
         linkHref: h.linkHref,
         position: i,
-        images: {
+        media: {
           create: Array.from({ length: h.photos }, (_, p) => ({
+            kind: "image",
             url: null, // empty placeholder slots until real uploads land
             position: p,
           })),

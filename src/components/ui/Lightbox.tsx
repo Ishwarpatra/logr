@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import type { MediaItem } from "@/lib/profile";
+
+const withAutoplay = (url: string) => `${url}${url.includes("?") ? "&" : "?"}autoplay=1`;
 
 const imgVariants = {
   enter: (d: number) => ({ opacity: 0, x: d > 0 ? 28 : -28 }),
@@ -10,18 +13,18 @@ const imgVariants = {
   exit: (d: number) => ({ opacity: 0, x: d > 0 ? -28 : 28 }),
 };
 
-/** Full-screen image viewer for one highlight's photo set, with prev/next
+/** Full-screen viewer for one event's media (photos + videos), with prev/next
  *  navigation (buttons + arrow keys) and Escape/backdrop to close. */
 export function Lightbox({
-  images,
+  items,
   startIndex,
   onClose,
 }: {
-  images: string[];
+  items: MediaItem[];
   startIndex: number;
   onClose: () => void;
 }) {
-  const count = images.length;
+  const count = items.length;
   const [[index, dir], setState] = useState<[number, number]>([startIndex, 0]);
 
   const go = useCallback(
@@ -64,19 +67,40 @@ export function Lightbox({
       </button>
 
       <AnimatePresence initial={false} custom={dir} mode="wait">
-        <motion.img
-          key={index}
-          src={images[index]}
-          alt=""
-          className="lightbox__img"
-          custom={dir}
-          variants={imgVariants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
-          onMouseDown={(e) => e.stopPropagation()}
-        />
+        {items[index].kind === "video" ? (
+          <motion.div
+            key={index}
+            className="lightbox__video"
+            custom={dir}
+            variants={imgVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <iframe
+              src={withAutoplay(items[index].url)}
+              title="video"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              allowFullScreen
+            />
+          </motion.div>
+        ) : (
+          <motion.img
+            key={index}
+            src={items[index].url}
+            alt=""
+            className="lightbox__img"
+            custom={dir}
+            variants={imgVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.24, ease: [0.2, 0.8, 0.2, 1] }}
+            onMouseDown={(e) => e.stopPropagation()}
+          />
+        )}
       </AnimatePresence>
 
       {count > 1 && (

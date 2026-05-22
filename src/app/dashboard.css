@@ -250,3 +250,12 @@
 .dash .tag-pick__chip:hover { color: var(--ink); border-color: var(--ink); }
 .dash .tag-pick__chip[aria-pressed="true"] { color: var(--paper); background: var(--user-accent); border-color: var(--user-accent); }
 .dash .hl-row__star { color: var(--user-accent); font-size: 11px; }
+
+/* event media field — video cells + add-video row */
+.dash .field-photos__cell--video { position: relative; background: color-mix(in srgb, var(--ink) 88%, var(--paper)); }
+.dash .field-photos__vbg { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--paper); text-transform: lowercase; }
+.dash .field-photos__play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--paper); font-size: 14px; pointer-events: none; }
+.dash .field-video { display: flex; gap: 8px; margin-top: 10px; }
+.dash .field-video input { flex: 1; font-family: var(--sans); font-size: 14px; color: var(--ink); background: transparent; border: 0.5px solid var(--rule-strong); border-radius: 7px; padding: 9px 12px; outline: none; transition: border-color 160ms ease; }
+.dash .field-video input:focus { border-color: var(--user-accent); }
+.dash .field-video .btn { flex-shrink: 0; }

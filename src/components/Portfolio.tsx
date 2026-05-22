@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
-import type { ProfileDTO, EventDTO } from "@/lib/profile";
+import type { ProfileDTO, EventDTO, MediaItem } from "@/lib/profile";
 import {
   PALETTES,
   LAYOUTS,
@@ -44,29 +44,43 @@ const SOCIAL_ICONS: Record<string, ReactNode> = {
   ),
 };
 
-// ---------- ENTRY PHOTOS (with lightbox) ----------
-function EntryPhotos({ images }: { images: string[] }) {
+// ---------- ENTRY MEDIA (photos + videos, with lightbox) ----------
+function EntryPhotos({ media }: { media: MediaItem[] }) {
   const [viewer, setViewer] = useState<number | null>(null);
-  if (images.length === 0) return null;
-  const cols = images.length >= 2 ? "two" : "one";
+  if (media.length === 0) return null;
+  const cols = media.length >= 2 ? "two" : "one";
   return (
     <>
       <div className={`entry__photos entry__photos--${cols}`}>
-        {images.map((url, i) => (
+        {media.map((m, i) => (
           <button
             key={i}
-            className="entry__photos__cell"
+            className={`entry__photos__cell${m.kind === "video" ? " entry__photos__cell--video" : ""}`}
             onClick={() => setViewer(i)}
-            aria-label="View image"
+            aria-label={m.kind === "video" ? "Play video" : "View image"}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" loading="lazy" />
+            {m.kind === "video" ? (
+              m.poster ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={m.poster} alt="" loading="lazy" />
+              ) : (
+                <span className="entry__photos__vbg" />
+              )
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={m.url} alt="" loading="lazy" />
+            )}
+            {m.kind === "video" && (
+              <span className="entry__photos__play" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+            )}
           </button>
         ))}
       </div>
       <AnimatePresence>
         {viewer !== null && (
-          <Lightbox images={images} startIndex={viewer} onClose={() => setViewer(null)} />
+          <Lightbox items={media} startIndex={viewer} onClose={() => setViewer(null)} />
         )}
       </AnimatePresence>
     </>
@@ -128,7 +142,7 @@ function Entry({ h, recency, active, spotlight, popOrigin }: { h: EventDTO; rece
         <span className="entry__title__text">{h.title}</span>
       </h3>
       {h.body && <p className="entry__body">{h.body}</p>}
-      {h.images.length > 0 && <EntryPhotos images={h.images} />}
+      {h.media.length > 0 && <EntryPhotos media={h.media} />}
       {h.link && (
         <a className="entry__link" href={h.link.href} target="_blank" rel="noopener noreferrer">
           {h.link.label} →

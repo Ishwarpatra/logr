@@ -51,7 +51,10 @@ export function generateLlmTxt(profile: ProfileDTO, origin: string): string {
     lines.push(`- Details: ${e.body.replace(/\n/g, " ")}`);
     if (e.link) lines.push(`- Link: ${e.link.label} (${e.link.href})`);
     if (isImageIcon(e.icon)) lines.push(`- Logo: ${abs(e.icon)}`);
-    if (e.images.length) lines.push(`- Photos: ${e.images.map(abs).join(", ")}`);
+    const photos = e.media.filter((m) => m.kind === "image").map((m) => abs(m.url));
+    const videos = e.media.filter((m) => m.kind === "video").map((m) => m.url);
+    if (photos.length) lines.push(`- Photos: ${photos.join(", ")}`);
+    if (videos.length) lines.push(`- Videos: ${videos.join(", ")}`);
     lines.push("");
   }
 

@@ -13,6 +13,8 @@ import {
 import { TAG_META } from "@/lib/theme";
 import { isImageIcon } from "@/lib/icon";
 import { uploadImage } from "@/lib/upload";
+import { parseVideoUrl } from "@/lib/video";
+import type { MediaItem } from "@/lib/profile";
 
 export type EditableEvent = {
   id: string;
@@ -26,16 +28,16 @@ export type EditableEvent = {
   linkLabel: string | null;
   linkHref: string | null;
   position: number;
-  images: string[];
+  media: MediaItem[];
 };
 
 const TAG_OPTIONS = ["work", "milestone", "talk", "side_quest", "writing"];
 
 function emptyDraft(position: number): EventInput {
-  return { date: "", year: new Date().getFullYear(), title: "", tags: ["work"], featured: true, body: "", icon: null, linkLabel: null, linkHref: null, position, images: [] };
+  return { date: "", year: new Date().getFullYear(), title: "", tags: ["work"], featured: true, body: "", icon: null, linkLabel: null, linkHref: null, position, media: [] };
 }
 function toDraft(e: EditableEvent): EventInput {
-  return { id: e.id, date: e.date, year: e.year, title: e.title, tags: e.tags, featured: e.featured, body: e.body, icon: e.icon, linkLabel: e.linkLabel, linkHref: e.linkHref, position: e.position, images: e.images };
+  return { id: e.id, date: e.date, year: e.year, title: e.title, tags: e.tags, featured: e.featured, body: e.body, icon: e.icon, linkLabel: e.linkLabel, linkHref: e.linkHref, position: e.position, media: e.media };
 }
 function letter(s: string) { return (s.trim()[0] || "·").toLowerCase(); }
 
@@ -44,6 +46,7 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
   const [draft, setDraft] = useState<EventInput>(initial);
   const [pending, start] = useTransition();
   const [busy, setBusy] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
   const toast = useToast();
   const iconFileRef = useRef<HTMLInputElement>(null);
   const photoFileRef = useRef<HTMLInputElement>(null);
@@ -70,10 +73,17 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
     if (!files?.length) return;
     setBusy(true);
     try {
-      const room = 4 - draft.images.length;
+      const room = 8 - draft.media.length;
       const urls = await Promise.all(Array.from(files).slice(0, room).map(uploadImage));
-      set("images", [...draft.images, ...urls]);
+      set("media", [...draft.media, ...urls.map((url) => ({ kind: "image" as const, url, poster: null, provider: null }))]);
     } catch (e) { toast(e instanceof Error ? e.message : "Upload failed", "error"); } finally { setBusy(false); }
+  }
+  function addVideo() {
+    const parsed = parseVideoUrl(videoUrl);
+    if (!parsed) { toast("Paste a YouTube, Vimeo, or Loom link", "error"); return; }
+    if (draft.media.length >= 8) { toast("Up to 8 media items", "error"); return; }
+    set("media", [...draft.media, { kind: "video", url: parsed.embedUrl, poster: parsed.poster, provider: parsed.provider }]);
+    setVideoUrl("");
   }
   function submit() {
     start(async () => { await saveEventAction(draft); onSaved(!initial.id); });
@@ -158,23 +168,43 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
         </div>
 
         <div className="field">
-          <span className="field__label">photos</span>
+          <span className="field__label">media</span>
           <div className="field-photos">
-            {draft.images.map((url, i) => (
-              <div key={i} className="field-photos__cell">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" />
-                <button type="button" onClick={() => set("images", draft.images.filter((_, j) => j !== i))} aria-label="remove">×</button>
+            {draft.media.map((m, i) => (
+              <div key={i} className={`field-photos__cell${m.kind === "video" ? " field-photos__cell--video" : ""}`}>
+                {m.kind === "video" ? (
+                  m.poster ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.poster} alt="" />
+                  ) : (
+                    <span className="field-photos__vbg">{m.provider ?? "video"}</span>
+                  )
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={m.url} alt="" />
+                )}
+                {m.kind === "video" && <span className="field-photos__play" aria-hidden="true">▶</span>}
+                <button type="button" onClick={() => set("media", draft.media.filter((_, j) => j !== i))} aria-label="remove">×</button>
               </div>
             ))}
-            {draft.images.length < 4 && (
+            {draft.media.length < 8 && (
               <button type="button" className="field-photos__add" onClick={() => photoFileRef.current?.click()} disabled={busy}>
-                {busy ? "…" : "+ add"}
+                {busy ? "…" : "+ photo"}
               </button>
             )}
             <input ref={photoFileRef} type="file" accept="image/*" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
           </div>
-          <span className="field__hint">up to 4 — shown as a 1 / 2 grid</span>
+          <div className="field-video">
+            <input
+              type="url"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addVideo(); } }}
+              placeholder="paste a YouTube / Vimeo / Loom link"
+            />
+            <button type="button" className="btn btn--small" onClick={addVideo} disabled={!videoUrl.trim() || draft.media.length >= 8}>+ video</button>
+          </div>
+          <span className="field__hint">up to 8 — photos and videos, shown as a 1 / 2 grid</span>
         </div>
 
         <div className="modal__foot">
@@ -203,6 +233,13 @@ function EventRow({
   const controls = useDragControls();
   const accent = e.tags.includes("milestone");
   const tagLabels = e.tags.map((t) => TAG_META[t]?.label ?? t).join(", ");
+  const photos = e.media.filter((m) => m.kind === "image");
+  const videos = e.media.filter((m) => m.kind === "video");
+  const thumb = photos[0]?.url ?? videos[0]?.poster ?? null;
+  const counts = [
+    photos.length ? `${photos.length} photo${photos.length > 1 ? "s" : ""}` : "",
+    videos.length ? `${videos.length} video${videos.length > 1 ? "s" : ""}` : "",
+  ].filter(Boolean).join(" · ");
   return (
     <Reorder.Item
       value={e}
@@ -224,9 +261,9 @@ function EventRow({
         </svg>
       </button>
       <div className={`hl-row__thumb ${accent ? "hl-row__thumb--accent" : ""}`}>
-        {e.images[0] ? (
+        {thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={e.images[0]} alt="" />
+          <img src={thumb} alt="" />
         ) : isImageIcon(e.icon) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={e.icon} alt="" />
@@ -236,7 +273,7 @@ function EventRow({
         <span className="hl-row__title">{e.title}{e.featured && <span className="hl-row__star" title="in highlights"> ★</span>}</span>
         <span className="hl-row__meta">
           {e.date} · <span className={accent ? "accent" : undefined}>{tagLabels}</span>
-          {e.images.length > 0 && ` · ${e.images.length} photo${e.images.length > 1 ? "s" : ""}`}
+          {counts && ` · ${counts}`}
           {e.linkLabel && ` · ${e.linkLabel}`}
         </span>
       </div>
