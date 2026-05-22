@@ -717,3 +717,54 @@
 .entry__photos__cell:hover .entry__photos__play { transform: translate(-50%, -50%) scale(1.08); }
 .lightbox__video { width: min(92vw, 1100px); aspect-ratio: 16 / 9; }
 .lightbox__video iframe { width: 100%; height: 100%; border: 0; border-radius: 8px; background: #000; box-shadow: 0 30px 90px -20px rgba(0,0,0,0.6); }
+
+/* article / post link cards */
+.entry__links { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.entry__link-card { display: flex; align-items: center; gap: 12px; border: 0.5px solid var(--rule-strong); border-radius: 8px; padding: 10px 12px; transition: border-color 160ms ease, background-color 160ms ease; }
+.entry__link-card:hover { border-color: var(--ink); background: color-mix(in srgb, var(--ink) 3%, transparent); }
+.entry__link-card__thumb { width: 56px; height: 56px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: var(--rule); }
+.entry__link-card__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.entry__link-card__copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.entry__link-card__title { font-family: var(--serif); font-size: 15px; line-height: 1.3; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.entry__link-card__site { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; color: var(--muted); }
+
+/* tweet embeds (react-tweet) — themed to the brand palette/type */
+.entry__tweets { margin-top: 16px; max-width: 520px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; align-items: start; }
+.entry__tweet { max-width: 100%; min-width: 0; }
+.logr .entry__tweet .react-tweet-theme {
+  --tweet-container-margin: 0;
+  --tweet-font-family: var(--sans);
+  --tweet-body-font-size: 14px;
+  --tweet-body-line-height: 1.4;
+  --tweet-header-font-size: 14px;
+  --tweet-header-line-height: 1.2;
+  --tweet-quoted-body-font-size: 13px;
+  --tweet-info-font-size: 13px;
+  --tweet-actions-font-size: 13px;
+  --tweet-replies-font-size: 13px;
+  --tweet-font-color: var(--ink);
+  --tweet-font-color-secondary: var(--muted);
+  --tweet-bg-color: var(--paper);
+  --tweet-bg-color-hover: color-mix(in srgb, var(--ink) 3%, var(--paper));
+  --tweet-quoted-bg-color-hover: color-mix(in srgb, var(--ink) 3%, var(--paper));
+  --tweet-color-blue-primary: var(--user-accent);
+  --tweet-color-blue-primary-hover: var(--user-accent);
+  --tweet-color-blue-secondary: var(--user-accent);
+  --tweet-color-blue-secondary-hover: var(--user-accent);
+  --tweet-twitter-icon-color: var(--muted);
+  --tweet-verified-blue-color: var(--user-accent);
+  --tweet-actions-color: var(--muted);
+  --tweet-border: 0.5px solid var(--rule-strong);
+}
+.entry__tweet__loading { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--faint); padding: 14px 0; }
+/* compact: clamp body to a fixed height, reveal with "show more" */
+.logr .tw-clamp { position: relative; max-height: 200px; overflow: hidden; }
+.logr .tw-clamp[data-expanded="true"] { max-height: none; overflow: visible; }
+.logr .tw-clamp:not([data-expanded="true"])::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 56px; pointer-events: none;
+  background: linear-gradient(transparent, var(--paper));
+}
+.logr .tw-foot { display: flex; align-items: center; gap: 14px; padding-top: 8px; }
+.logr .tw-more { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--user-accent); }
+.logr .tw-source { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.05em; color: var(--muted); margin-left: auto; }
+.logr .tw-source:hover { color: var(--ink); }

@@ -66,10 +66,11 @@ model Media {
   id       String  @id @default(cuid())
   eventId  String
   event    Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  kind     String  @default("image") // image | video
-  url      String? // image/video file URL, or a provider embed URL; null = empty placeholder
-  poster   String? // thumbnail/poster image for videos
-  provider String? // file | youtube | vimeo | loom (null for plain images)
+  kind     String  @default("image") // image | video | link
+  url      String? // image/video file URL, provider embed URL, or external link; null = placeholder
+  poster   String? // thumbnail/poster image (video frame, or og:image for links)
+  provider String? // file | youtube | vimeo | loom | site name (for links)
+  title    String? // card title (og:title for links)
   position Int
 
   @@index([eventId, position])

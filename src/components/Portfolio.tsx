@@ -19,6 +19,7 @@ import { LAYOUT_ICONS } from "@/components/layout-icons";
 import { ChatWidget } from "@/components/ChatWidget";
 import { ShareModal } from "@/components/ShareModal";
 import { TypingLabel } from "@/components/TypingLabel";
+import { TweetEmbed } from "@/components/TweetEmbed";
 
 const EASE = [0.2, 0.8, 0.2, 1] as [number, number, number, number];
 const VIEWPORT = { once: true, amount: 0.2, margin: "0px 0px -6% 0px" } as const;
@@ -87,6 +88,49 @@ function EntryPhotos({ media }: { media: MediaItem[] }) {
   );
 }
 
+// ---------- ENTRY LINKS (article/blog/press cards) ----------
+function EntryLinks({ links }: { links: MediaItem[] }) {
+  return (
+    <div className="entry__links">
+      {links.map((m, i) => (
+        <a key={i} className="entry__link-card" href={m.url} target="_blank" rel="noopener noreferrer">
+          {m.poster && (
+            <span className="entry__link-card__thumb">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={m.poster} alt="" loading="lazy" />
+            </span>
+          )}
+          <span className="entry__link-card__copy">
+            <span className="entry__link-card__title">{m.title ?? m.url}</span>
+            <span className="entry__link-card__site">{m.provider ?? "open link"} ↗</span>
+          </span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ---------- ENTRY TWEETS (live X embeds) ----------
+function EntryTweets({ tweets }: { tweets: MediaItem[] }) {
+  return (
+    <div className="entry__tweets">
+      {tweets.map((m, i) => {
+        const id = m.url.match(/status(?:es)?\/(\d+)/)?.[1];
+        return id ? (
+          <TweetEmbed key={i} id={id} url={m.url} />
+        ) : (
+          <a key={i} className="entry__link-card" href={m.url} target="_blank" rel="noopener noreferrer">
+            <span className="entry__link-card__copy">
+              <span className="entry__link-card__title">View this post on X</span>
+              <span className="entry__link-card__site">x.com ↗</span>
+            </span>
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
 // ---------- ENTRY ICON ----------
 function EntryIcon({ h }: { h: EventDTO }) {
   if (h.icon && isImageIcon(h.icon)) {
@@ -142,7 +186,15 @@ function Entry({ h, recency, active, spotlight, popOrigin }: { h: EventDTO; rece
         <span className="entry__title__text">{h.title}</span>
       </h3>
       {h.body && <p className="entry__body">{h.body}</p>}
-      {h.media.length > 0 && <EntryPhotos media={h.media} />}
+      {h.media.some((m) => m.kind === "image" || m.kind === "video") && (
+        <EntryPhotos media={h.media.filter((m) => m.kind === "image" || m.kind === "video")} />
+      )}
+      {h.media.some((m) => m.kind === "link") && (
+        <EntryLinks links={h.media.filter((m) => m.kind === "link")} />
+      )}
+      {h.media.some((m) => m.kind === "tweet") && (
+        <EntryTweets tweets={h.media.filter((m) => m.kind === "tweet")} />
+      )}
       {h.link && (
         <a className="entry__link" href={h.link.href} target="_blank" rel="noopener noreferrer">
           {h.link.label} →

@@ -8,12 +8,13 @@ import {
   saveEventAction,
   deleteEventAction,
   reorderEventsAction,
+  unfurlLinkAction,
   type EventInput,
 } from "@/lib/actions";
 import { TAG_META } from "@/lib/theme";
 import { isImageIcon } from "@/lib/icon";
 import { uploadImage } from "@/lib/upload";
-import { parseVideoUrl } from "@/lib/video";
+import { parseVideoUrl, parseTweetUrl } from "@/lib/video";
 import type { MediaItem } from "@/lib/profile";
 
 export type EditableEvent = {
@@ -75,15 +76,31 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
     try {
       const room = 8 - draft.media.length;
       const urls = await Promise.all(Array.from(files).slice(0, room).map(uploadImage));
-      set("media", [...draft.media, ...urls.map((url) => ({ kind: "image" as const, url, poster: null, provider: null }))]);
+      set("media", [...draft.media, ...urls.map((url) => ({ kind: "image" as const, url, poster: null, provider: null, title: null }))]);
     } catch (e) { toast(e instanceof Error ? e.message : "Upload failed", "error"); } finally { setBusy(false); }
   }
-  function addVideo() {
-    const parsed = parseVideoUrl(videoUrl);
-    if (!parsed) { toast("Paste a YouTube, Vimeo, or Loom link", "error"); return; }
+  // paste a URL: video links become embeds, anything else becomes a link card
+  async function addUrl() {
+    const url = videoUrl.trim();
+    if (!url) return;
     if (draft.media.length >= 8) { toast("Up to 8 media items", "error"); return; }
-    set("media", [...draft.media, { kind: "video", url: parsed.embedUrl, poster: parsed.poster, provider: parsed.provider }]);
-    setVideoUrl("");
+    if (parseTweetUrl(url)) {
+      set("media", [...draft.media, { kind: "tweet", url, poster: null, provider: "x", title: null }]);
+      setVideoUrl("");
+      return;
+    }
+    const v = parseVideoUrl(url);
+    if (v) {
+      set("media", [...draft.media, { kind: "video", url: v.embedUrl, poster: v.poster, provider: v.provider, title: null }]);
+      setVideoUrl("");
+      return;
+    }
+    setBusy(true);
+    try {
+      const link = await unfurlLinkAction(url);
+      set("media", [...draft.media, link]);
+      setVideoUrl("");
+    } catch (e) { toast(e instanceof Error ? e.message : "Couldn't add link", "error"); } finally { setBusy(false); }
   }
   function submit() {
     start(async () => { await saveEventAction(draft); onSaved(!initial.id); });
@@ -171,19 +188,16 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
           <span className="field__label">media</span>
           <div className="field-photos">
             {draft.media.map((m, i) => (
-              <div key={i} className={`field-photos__cell${m.kind === "video" ? " field-photos__cell--video" : ""}`}>
-                {m.kind === "video" ? (
-                  m.poster ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={m.poster} alt="" />
-                  ) : (
-                    <span className="field-photos__vbg">{m.provider ?? "video"}</span>
-                  )
-                ) : (
+              <div key={i} className={`field-photos__cell${m.kind !== "image" ? " field-photos__cell--video" : ""}`} title={m.title ?? undefined}>
+                {m.kind === "image" || m.poster ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={m.url} alt="" />
+                  <img src={m.kind === "image" ? m.url : (m.poster as string)} alt="" />
+                ) : (
+                  <span className="field-photos__vbg">{m.provider ?? m.kind}</span>
                 )}
                 {m.kind === "video" && <span className="field-photos__play" aria-hidden="true">▶</span>}
+                {m.kind === "link" && <span className="field-photos__play" aria-hidden="true">↗</span>}
+                {m.kind === "tweet" && <span className="field-photos__play" aria-hidden="true">𝕏</span>}
                 <button type="button" onClick={() => set("media", draft.media.filter((_, j) => j !== i))} aria-label="remove">×</button>
               </div>
             ))}
@@ -199,12 +213,12 @@ function EventModal({ initial, onClose, onSaved }: { initial: EventInput; onClos
               type="url"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addVideo(); } }}
-              placeholder="paste a YouTube / Vimeo / Loom link"
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addUrl(); } }}
+              placeholder="paste a video, article, or post link"
             />
-            <button type="button" className="btn btn--small" onClick={addVideo} disabled={!videoUrl.trim() || draft.media.length >= 8}>+ video</button>
+            <button type="button" className="btn btn--small" onClick={addUrl} disabled={busy || !videoUrl.trim() || draft.media.length >= 8}>{busy ? "…" : "+ add"}</button>
           </div>
-          <span className="field__hint">up to 8 — photos and videos, shown as a 1 / 2 grid</span>
+          <span className="field__hint">up to 8 — photos, videos (YouTube/Vimeo/Loom), and article/post links</span>
         </div>
 
         <div className="modal__foot">
@@ -235,10 +249,14 @@ function EventRow({
   const tagLabels = e.tags.map((t) => TAG_META[t]?.label ?? t).join(", ");
   const photos = e.media.filter((m) => m.kind === "image");
   const videos = e.media.filter((m) => m.kind === "video");
-  const thumb = photos[0]?.url ?? videos[0]?.poster ?? null;
+  const linksN = e.media.filter((m) => m.kind === "link").length;
+  const tweetsN = e.media.filter((m) => m.kind === "tweet").length;
+  const thumb = photos[0]?.url ?? videos[0]?.poster ?? e.media.find((m) => m.poster)?.poster ?? null;
   const counts = [
     photos.length ? `${photos.length} photo${photos.length > 1 ? "s" : ""}` : "",
     videos.length ? `${videos.length} video${videos.length > 1 ? "s" : ""}` : "",
+    linksN ? `${linksN} link${linksN > 1 ? "s" : ""}` : "",
+    tweetsN ? `${tweetsN} tweet${tweetsN > 1 ? "s" : ""}` : "",
   ].filter(Boolean).join(" · ");
   return (
     <Reorder.Item

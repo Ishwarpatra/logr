@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { PRIMARY_USERNAME } from "@/lib/profile";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
+import { unfurl } from "@/lib/unfurl";
 import {
   checkPassword,
   createSession,
@@ -87,10 +88,11 @@ export async function updateThemeAction(theme: Partial<Theme>) {
 
 // ---------- EVENTS ----------
 export type MediaInput = {
-  kind: "image" | "video";
+  kind: "image" | "video" | "link" | "tweet";
   url: string;
   poster: string | null;
   provider: string | null;
+  title: string | null;
 };
 
 export type EventInput = {
@@ -134,6 +136,7 @@ export async function saveEventAction(input: EventInput) {
       url: m.url || null,
       poster: m.poster,
       provider: m.provider,
+      title: m.title,
       position,
     })),
   };
@@ -156,6 +159,13 @@ export async function deleteEventAction(id: string) {
   await requireAuth();
   await prisma.event.delete({ where: { id } });
   revalidateAll();
+}
+
+/** Fetch Open Graph data for a pasted link, to build a link/article card. */
+export async function unfurlLinkAction(url: string): Promise<MediaInput> {
+  await requireAuth();
+  const { title, poster, provider } = await unfurl(url);
+  return { kind: "link", url, poster, provider, title };
 }
 
 /** Persist a full drag-reordered list: position = index in `orderedIds`. */

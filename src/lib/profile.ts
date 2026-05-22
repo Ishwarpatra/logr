@@ -4,10 +4,11 @@ import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 export type Social = { label: string; href: string };
 
 export type MediaItem = {
-  kind: "image" | "video";
-  url: string; // image URL, or a provider embed URL for video
-  poster: string | null; // thumbnail for video
-  provider: string | null; // youtube | vimeo | loom (null for images)
+  kind: "image" | "video" | "link" | "tweet";
+  url: string; // image URL, video embed URL, or external link
+  poster: string | null; // thumbnail (video frame / og:image)
+  provider: string | null; // youtube | vimeo | loom | site name
+  title: string | null; // card title for links
 };
 
 export type EventDTO = {
@@ -83,10 +84,18 @@ export async function getProfile(username: string): Promise<ProfileDTO | null> {
       media: e.media
         .filter((m) => !!m.url)
         .map((m) => ({
-          kind: m.kind === "video" ? ("video" as const) : ("image" as const),
+          kind:
+            m.kind === "video"
+              ? ("video" as const)
+              : m.kind === "link"
+                ? ("link" as const)
+                : m.kind === "tweet"
+                  ? ("tweet" as const)
+                  : ("image" as const),
           url: m.url as string,
           poster: m.poster,
           provider: m.provider,
+          title: m.title,
         })),
     })),
   };

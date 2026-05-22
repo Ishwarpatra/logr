@@ -55,6 +55,12 @@ export function generateLlmTxt(profile: ProfileDTO, origin: string): string {
     const videos = e.media.filter((m) => m.kind === "video").map((m) => m.url);
     if (photos.length) lines.push(`- Photos: ${photos.join(", ")}`);
     if (videos.length) lines.push(`- Videos: ${videos.join(", ")}`);
+    for (const m of e.media.filter((x) => x.kind === "link")) {
+      lines.push(`- Link: ${m.title ?? m.url} (${m.url})`);
+    }
+    for (const m of e.media.filter((x) => x.kind === "tweet")) {
+      lines.push(`- Tweet: ${m.url}`);
+    }
     lines.push("");
   }
 

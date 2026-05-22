@@ -38,3 +38,9 @@ export function parseVideoUrl(raw: string): ParsedVideo | null {
 
   return null;
 }
+
+/** Detect an X / Twitter status link and pull out the tweet id. */
+export function parseTweetUrl(raw: string): { id: string } | null {
+  const m = raw.trim().match(/(?:twitter\.com|x\.com)\/[^/]+\/status(?:es)?\/(\d+)/i);
+  return m ? { id: m[1] } : null;
+}
