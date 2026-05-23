@@ -1,26 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { startSignupAction } from "@/lib/actions";
 
-/** Cosmetic handle-claim field (signup isn't wired yet) — mirrors the
- *  landing prototype: type a handle, "claim" reserves it visually. */
+/** Landing handle-claim field: type a handle, "claim" starts Google sign-in
+ *  and carries the handle into onboarding (/welcome?handle=…). */
 export function HandleClaim({ id, autoFocus }: { id: string; autoFocus?: boolean }) {
   const [value, setValue] = useState("");
-  const [claimed, setClaimed] = useState(false);
-
-  function claim() {
-    const v = value.trim().toLowerCase().replace(/[^a-z0-9\-_]/g, "");
-    if (!v) return;
-    setValue(v);
-    setClaimed(true);
-  }
 
   return (
-    <>
+    <form action={startSignupAction} style={{ display: "contents" }}>
       <label className="handle-input" htmlFor={id}>
         <span className="handle-input__prefix">logr.life<span className="accent">/</span></span>
         <input
           id={id}
+          name="handle"
           type="text"
           placeholder="yourname"
           spellCheck={false}
@@ -28,13 +22,10 @@ export function HandleClaim({ id, autoFocus }: { id: string; autoFocus?: boolean
           maxLength={24}
           autoFocus={autoFocus}
           value={value}
-          onChange={(e) => { setValue(e.target.value); setClaimed(false); }}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); claim(); } }}
+          onChange={(e) => setValue(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
         />
       </label>
-      <button type="button" className="hero__claim" onClick={claim} disabled={claimed}>
-        {claimed ? `logr.life/${value} reserved →` : "claim →"}
-      </button>
-    </>
+      <button type="submit" className="hero__claim">claim →</button>
+    </form>
   );
 }

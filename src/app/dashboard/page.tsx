@@ -1,18 +1,22 @@
 import { redirect } from "next/navigation";
-import { isAuthenticated } from "@/lib/auth";
-import { getProfile, PRIMARY_USERNAME } from "@/lib/profile";
+import { prisma } from "@/lib/db";
+import { currentProfileId, getUserId } from "@/lib/session";
+import { getProfile } from "@/lib/profile";
 import { AdminShell } from "@/components/admin/AdminShell";
 
 export const metadata = { title: "Dashboard — logr" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  if (!(await isAuthenticated())) redirect("/login");
-
-  const profile = await getProfile(PRIMARY_USERNAME);
-  if (!profile) {
-    return <div className="p-8 text-zinc-600">No profile found. Run `npm run db:seed`.</div>;
+  const profileId = await currentProfileId();
+  if (!profileId) {
+    // signed in with Google but hasn't onboarded → /welcome; otherwise sign in
+    redirect((await getUserId()) ? "/welcome" : "/login");
   }
+
+  const row = await prisma.profile.findUnique({ where: { id: profileId }, select: { username: true } });
+  const profile = row ? await getProfile(row.username) : null;
+  if (!profile) redirect("/login");
 
   // Events arrive sorted by position asc; expose a contiguous index.
   const events = profile.events.map((e, i) => ({

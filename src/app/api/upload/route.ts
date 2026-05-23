@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extname } from "path";
 import { randomUUID } from "crypto";
-import { isAuthenticated } from "@/lib/auth";
+import { getUserId } from "@/lib/session";
 import { storeImage } from "@/lib/storage";
 
 // Auth-gated image upload. Stores to AWS S3 when configured, else to the
 // local filesystem (dev). Returns the stored object's public URL.
 export async function POST(req: NextRequest) {
-  if (!(await isAuthenticated())) {
+  if (!(await getUserId())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

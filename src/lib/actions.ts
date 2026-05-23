@@ -1,9 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { PRIMARY_USERNAME } from "@/lib/profile";
 import { DEFAULT_THEME, type Theme } from "@/lib/theme";
 import { unfurl } from "@/lib/unfurl";
 import { generateText } from "ai";
@@ -11,32 +9,32 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { isChatEnabled, CHAT_MODEL } from "@/lib/chat";
 import { buildNarratePrompt, parseNarrated } from "@/lib/narrate";
 import { parseVideoUrl, parseTweetUrl } from "@/lib/video";
-import {
-  checkPassword,
-  createSession,
-  destroySession,
-  requireAuth,
-} from "@/lib/auth";
+import { requireProfileId, requireSignedIn, getUserId } from "@/lib/session";
+import { signIn, signOut } from "@/auth";
 
-function revalidateAll() {
+async function revalidateForProfile(profileId: string) {
+  const p = await prisma.profile.findUnique({ where: { id: profileId }, select: { username: true } });
   revalidatePath("/");
-  revalidatePath("/admin");
-  revalidatePath(`/${PRIMARY_USERNAME}`);
+  revalidatePath("/dashboard");
+  if (p) revalidatePath(`/${p.username}`);
 }
 
 // ---------- AUTH ----------
-export async function loginAction(formData: FormData) {
-  const password = String(formData.get("password") ?? "");
-  if (!checkPassword(password)) {
-    redirect("/login?error=1");
-  }
-  await createSession();
-  redirect("/admin");
+export async function logoutAction() {
+  await signOut({ redirectTo: "/login" });
 }
 
-export async function logoutAction() {
-  await destroySession();
-  redirect("/login");
+/** Landing "claim a handle" → Google OAuth → /welcome (handle carried as a hint). */
+export async function startSignupAction(formData: FormData) {
+  const handle = String(formData.get("handle") ?? "")
+    .trim().toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
+  const redirectTo = handle ? `/welcome?handle=${encodeURIComponent(handle)}` : "/welcome";
+  await signIn("google", { redirectTo });
+}
+
+/** Plain "continue with Google" (login page). */
+export async function googleSignInAction() {
+  await signIn("google", { redirectTo: "/welcome" });
 }
 
 // ---------- PROFILE ----------
@@ -53,11 +51,63 @@ function parseSocials(raw: string) {
     });
 }
 
+// ---------- ONBOARDING ----------
+const RESERVED = new Set([
+  "admin", "login", "logout", "welcome", "api", "dashboard", "settings", "new",
+  "about", "help", "terms", "privacy", "_next", "static", "llm", "robots", "sitemap",
+]);
+
+function validateHandle(u: string): { ok: true } | { ok: false; error: string } {
+  if (!/^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])$/.test(u)) return { ok: false, error: "3–30 chars: letters, numbers, hyphens" };
+  if (RESERVED.has(u)) return { ok: false, error: "that handle is reserved" };
+  return { ok: true };
+}
+
+export async function checkHandleAction(handle: string): Promise<{ available: boolean; error?: string }> {
+  await requireSignedIn();
+  const u = handle.trim().toLowerCase();
+  const v = validateHandle(u);
+  if (!v.ok) return { available: false, error: v.error };
+  const taken = await prisma.profile.findUnique({ where: { username: u }, select: { id: true } });
+  return taken ? { available: false, error: "taken" } : { available: true };
+}
+
+export async function createProfileAction(
+  input: { handle: string; name: string; bio: string; avatarUrl: string | null }
+): Promise<{ ok: true; username: string } | { ok: false; error: string }> {
+  const userId = await getUserId();
+  if (!userId) return { ok: false, error: "Not signed in" };
+  const existing = await prisma.profile.findUnique({ where: { userId }, select: { username: true } });
+  if (existing) return { ok: true, username: existing.username }; // already onboarded
+  const username = input.handle.trim().toLowerCase();
+  const v = validateHandle(username);
+  if (!v.ok) return { ok: false, error: v.error };
+  if (await prisma.profile.findUnique({ where: { username }, select: { id: true } })) {
+    return { ok: false, error: "That handle is taken" };
+  }
+  await prisma.profile.create({
+    data: {
+      userId,
+      username,
+      name: input.name.trim() || username,
+      handle: `@${username}`,
+      bio: input.bio.trim(),
+      status: "",
+      location: "",
+      about: null,
+      avatarUrl: input.avatarUrl || null,
+      socials: "[]",
+      theme: JSON.stringify(DEFAULT_THEME),
+    },
+  });
+  return { ok: true, username };
+}
+
 export async function updateProfileAction(formData: FormData) {
-  await requireAuth();
+  const profileId = await requireProfileId();
   const socials = parseSocials(String(formData.get("socials") ?? ""));
   await prisma.profile.update({
-    where: { username: PRIMARY_USERNAME },
+    where: { id: profileId },
     data: {
       name: String(formData.get("name") ?? ""),
       handle: String(formData.get("handle") ?? ""),
@@ -69,13 +119,13 @@ export async function updateProfileAction(formData: FormData) {
       socials: JSON.stringify(socials),
     },
   });
-  revalidateAll();
+  await revalidateForProfile(profileId);
 }
 
 export async function updateThemeAction(theme: Partial<Theme>) {
-  await requireAuth();
+  const profileId = await requireProfileId();
   const row = await prisma.profile.findUnique({
-    where: { username: PRIMARY_USERNAME },
+    where: { id: profileId },
     select: { theme: true },
   });
   let current: Theme = DEFAULT_THEME;
@@ -85,10 +135,10 @@ export async function updateThemeAction(theme: Partial<Theme>) {
     /* keep default */
   }
   await prisma.profile.update({
-    where: { username: PRIMARY_USERNAME },
+    where: { id: profileId },
     data: { theme: JSON.stringify({ ...current, ...theme }) },
   });
-  revalidateAll();
+  await revalidateForProfile(profileId);
 }
 
 // ---------- EVENTS ----------
@@ -116,11 +166,7 @@ export type EventInput = {
 };
 
 export async function saveEventAction(input: EventInput) {
-  await requireAuth();
-  const profile = await prisma.profile.findUniqueOrThrow({
-    where: { username: PRIMARY_USERNAME },
-    select: { id: true },
-  });
+  const profileId = await requireProfileId();
 
   const data = {
     dateOn: input.dateOn,
@@ -147,23 +193,21 @@ export async function saveEventAction(input: EventInput) {
   };
 
   if (input.id) {
+    // ownership check: the event must belong to the current profile
+    const owned = await prisma.event.findFirst({ where: { id: input.id, profileId }, select: { id: true } });
+    if (!owned) throw new Error("Not found");
     await prisma.media.deleteMany({ where: { eventId: input.id } });
-    await prisma.event.update({
-      where: { id: input.id },
-      data: { ...data, media },
-    });
+    await prisma.event.update({ where: { id: input.id }, data: { ...data, media } });
   } else {
-    await prisma.event.create({
-      data: { ...data, profileId: profile.id, media },
-    });
+    await prisma.event.create({ data: { ...data, profileId, media } });
   }
-  revalidateAll();
+  await revalidateForProfile(profileId);
 }
 
 export async function deleteEventAction(id: string) {
-  await requireAuth();
-  await prisma.event.delete({ where: { id } });
-  revalidateAll();
+  const profileId = await requireProfileId();
+  await prisma.event.deleteMany({ where: { id, profileId } });
+  await revalidateForProfile(profileId);
 }
 
 export type ReviewEvent = {
@@ -201,7 +245,7 @@ async function resolveMedia(links: string[]): Promise<MediaInput[]> {
 
 /** Extract structured events (with link/video/tweet media) from a narrative. */
 export async function narrateEventsAction(text: string): Promise<ReviewEvent[]> {
-  await requireAuth();
+  await requireSignedIn();
   if (!isChatEnabled()) throw new Error("Chat is not configured.");
   if (!text.trim()) return [];
   const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! });
@@ -230,22 +274,18 @@ export async function narrateEventsAction(text: string): Promise<ReviewEvent[]> 
 
 /** Bulk-insert events extracted from a narrative (newest get the top slots). */
 export async function insertEventsAction(events: ReviewEvent[]) {
-  await requireAuth();
+  const profileId = await requireProfileId();
   const clean = events
     .filter((e) => e.title?.trim() && /^\d{4}-\d{2}-\d{2}$/.test(e.dateOn))
     .slice(0, 50);
   if (!clean.length) return;
-  const profile = await prisma.profile.findUniqueOrThrow({
-    where: { username: PRIMARY_USERNAME },
-    select: { id: true },
-  });
-  const agg = await prisma.event.aggregate({ where: { profileId: profile.id }, _min: { position: true } });
+  const agg = await prisma.event.aggregate({ where: { profileId }, _min: { position: true } });
   let pos = (agg._min.position ?? 0) - clean.length;
   await prisma.$transaction(
     clean.map((e) =>
       prisma.event.create({
         data: {
-          profileId: profile.id,
+          profileId,
           dateOn: e.dateOn,
           fullDate: !!e.fullDate,
           title: e.title.trim(),
@@ -270,23 +310,23 @@ export async function insertEventsAction(events: ReviewEvent[]) {
       })
     )
   );
-  revalidateAll();
+  await revalidateForProfile(profileId);
 }
 
 const TAG_OPTIONS_SET = new Set(["work", "milestone", "talk", "side_quest", "writing"]);
 
 /** Fetch Open Graph data for a pasted link, to build a link/article card. */
 export async function unfurlLinkAction(url: string): Promise<MediaInput> {
-  await requireAuth();
+  await requireSignedIn();
   const { title, poster, provider } = await unfurl(url);
   return { kind: "link", url, poster, provider, title };
 }
 
-/** Persist a full drag-reordered list: position = index in `orderedIds`. */
+/** Persist a full drag-reordered list: position = index in `orderedIds` (scoped to the profile). */
 export async function reorderEventsAction(orderedIds: string[]) {
-  await requireAuth();
+  const profileId = await requireProfileId();
   await prisma.$transaction(
-    orderedIds.map((id, i) => prisma.event.update({ where: { id }, data: { position: i } }))
+    orderedIds.map((id, i) => prisma.event.updateMany({ where: { id, profileId }, data: { position: i } }))
   );
-  revalidateAll();
+  await revalidateForProfile(profileId);
 }

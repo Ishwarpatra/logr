@@ -15,7 +15,7 @@ export function Landing() {
           <Link className="bar__brand" href="/" aria-label="logr"><Mark />logr</Link>
           <nav className="bar__util" aria-label="utilities">
             <Link href="/koshik">see one</Link>
-            <Link href="/admin">dashboard</Link>
+            <Link href="/dashboard">dashboard</Link>
             <a className="cta" href="#claim">claim a handle</a>
           </nav>
         </header>
@@ -228,7 +228,7 @@ export function Landing() {
               <h4>product</h4>
               <a href="#claim">claim a handle</a>
               <Link href="/koshik">see an example</Link>
-              <Link href="/admin">dashboard</Link>
+              <Link href="/dashboard">dashboard</Link>
             </nav>
             <nav className="foot__col" aria-label="brand">
               <h4>brand</h4>
