@@ -4,24 +4,23 @@ import { cn } from "@/lib/cn";
 type Variant = "primary" | "accent" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
 
-// Themed via the active palette's CSS variables (with neutral fallbacks).
+// Themed via the design system CSS variables (--ink, --paper, --user-accent, --muted).
 const VARIANTS: Record<Variant, string> = {
-  // strong solid — mirrors the app's active chip (ink bg / bg-colored fg)
   primary:
-    "bg-[var(--chip-bg,#1f1530)] text-[var(--chip-fg,#fff)] hover:opacity-90 disabled:opacity-50",
+    "bg-[var(--ink,#1a1a1a)] text-[var(--paper,#faf8f3)] border border-[var(--ink,#1a1a1a)] hover:opacity-88 disabled:opacity-40",
   accent:
-    "bg-[var(--accent,#7a4ee0)] text-white hover:opacity-90 disabled:opacity-50",
+    "bg-[var(--user-accent,#d85a30)] text-[var(--paper,#faf8f3)] border border-[var(--user-accent,#d85a30)] hover:opacity-92 disabled:opacity-40",
   secondary:
-    "border border-[var(--rule,#e4e4e7)] bg-[var(--card,#fff)] text-[var(--ink,#18181b)] hover:bg-[var(--card-hover,#f4f4f5)] disabled:opacity-50",
+    "border border-[var(--rule-strong,rgba(26,26,26,0.28))] bg-transparent text-[var(--ink,#1a1a1a)] hover:bg-[var(--ink,#1a1a1a)] hover:text-[var(--paper,#faf8f3)] disabled:opacity-50",
   ghost:
-    "text-[var(--muted,#71717a)] hover:bg-[var(--card-hover,#f4f4f5)] hover:text-[var(--ink,#18181b)]",
+    "text-[var(--muted,#6b6862)] hover:text-[var(--ink,#1a1a1a)] disabled:opacity-40",
   danger:
-    "border border-red-300/60 bg-[var(--card,#fff)] text-red-600 hover:bg-red-50 disabled:opacity-50",
+    "border border-[var(--user-accent,#d85a30)] text-[var(--user-accent,#d85a30)] hover:bg-[var(--user-accent,#d85a30)] hover:text-[var(--paper,#faf8f3)] disabled:opacity-50",
 };
 
 const SIZES: Record<Size, string> = {
-  sm: "h-8 px-3.5 text-xs gap-1.5",
-  md: "h-10 px-5 text-sm gap-2",
+  sm: "h-8 px-3 text-[10.5px] tracking-[0.04em] gap-1.5",
+  md: "h-10 px-4 text-[11.5px] tracking-[0.05em] gap-2",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -38,7 +37,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={type}
       className={cn(
-        "inline-flex items-center justify-center font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent,#7a4ee0)]/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100",
+        "inline-flex items-center justify-center font-mono transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--user-accent,#d85a30)]/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100",
         VARIANTS[variant],
         SIZES[size],
         className

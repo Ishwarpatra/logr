@@ -4,6 +4,7 @@ import { useState, useEffect, useTransition, useMemo, useRef, useCallback } from
 import { useRouter } from "next/navigation";
 import Portfolio from "@/components/Portfolio";
 import { Mark } from "@/components/Mark";
+import { Button } from "@/components/ui/Button";
 import { LAYOUTS, PALETTES } from "@/lib/theme";
 import {
   narrateEventsAction,
@@ -427,7 +428,7 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
         <footer className="onb__actionbar">
           <div className="onb__actionbar__left">
             {step > 0 && (
-              <button type="button" className="onb__back-btn" onClick={prevStep}>← back</button>
+              <Button variant="ghost" size="sm" onClick={prevStep}>← back</Button>
             )}
           </div>
 
@@ -435,24 +436,22 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
             <span className="onb__step-ind">{step + 1} / 3</span>
 
             {step < 2 ? (
-              <button
-                type="button"
-                className="onb__next-btn"
+              <Button
+                variant="primary"
                 onClick={nextStep}
                 disabled={step === 0 && !canGoNext0}
               >
                 next →
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 ref={publishBtnRef}
-                type="button"
-                className="onb__publish"
+                variant="accent"
                 onClick={publish}
                 disabled={!canPublish}
               >
                 {publishing ? "publishing…" : "publish & go live →"}
-              </button>
+              </Button>
             )}
           </div>
         </footer>
