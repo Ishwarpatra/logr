@@ -262,7 +262,8 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
       {/* ---- main shell ---- */}
       <div className="onb__shell">
 
-        {/* LEFT: STEPPER FORM */}
+        {/* LEFT: FORM + NAV */}
+        <div className="onb__left">
         <section className="onb__form" aria-label="build your logr">
           <div key={step} className={`onb__step-content onb__step-content--${dir}`}>
 
@@ -422,9 +423,44 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
           </div>
         </section>
 
+        {/* NAV BAR — bottom of left column */}
+        <footer className="onb__actionbar">
+          <div className="onb__actionbar__left">
+            {step > 0 && (
+              <button type="button" className="onb__back-btn" onClick={prevStep}>← back</button>
+            )}
+          </div>
+
+          <div className="onb__actionbar__right">
+            <span className="onb__step-ind">{step + 1} / 3</span>
+
+            {step < 2 ? (
+              <button
+                type="button"
+                className="onb__next-btn"
+                onClick={nextStep}
+                disabled={step === 0 && !canGoNext0}
+              >
+                next →
+              </button>
+            ) : (
+              <button
+                ref={publishBtnRef}
+                type="button"
+                className="onb__publish"
+                onClick={publish}
+                disabled={!canPublish}
+              >
+                {publishing ? "publishing…" : "publish & go live →"}
+              </button>
+            )}
+          </div>
+        </footer>
+        </div>{/* end .onb__left */}
+
         <div className="onb__shell__divider" aria-hidden="true" />
 
-        {/* RIGHT: LIVE PREVIEW */}
+        {/* RIGHT: LIVE PREVIEW — full height, no nav bar */}
         <aside className="onb__preview" aria-label="live preview">
           <div className="onb__preview__head">
             <span>logr.life/{handle || "you"}</span>
@@ -439,40 +475,6 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
         </aside>
 
       </div>
-
-      {/* ---- sticky action bar ---- */}
-      <footer className="onb__actionbar">
-        <div className="onb__actionbar__left">
-          {step > 0 && (
-            <button type="button" className="onb__back-btn" onClick={prevStep}>← back</button>
-          )}
-        </div>
-
-        <div className="onb__actionbar__right">
-          <span className="onb__step-ind">{step + 1} / 3</span>
-
-          {step < 2 ? (
-            <button
-              type="button"
-              className="onb__next-btn"
-              onClick={nextStep}
-              disabled={step === 0 && !canGoNext0}
-            >
-              next →
-            </button>
-          ) : (
-            <button
-              ref={publishBtnRef}
-              type="button"
-              className="onb__publish"
-              onClick={publish}
-              disabled={!canPublish}
-            >
-              {publishing ? "publishing…" : "publish & go live →"}
-            </button>
-          )}
-        </div>
-      </footer>
 
     </div>
   );

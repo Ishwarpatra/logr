@@ -88,10 +88,14 @@
 }
 .onb__shell__divider { background: var(--rule); }
 
-/* ---- left: form ---- */
+/* ---- left column: form + nav ---- */
+.onb__left {
+  display: flex; flex-direction: column; overflow: hidden;
+  border-right: none; /* divider handled by shell */
+}
 .onb__form {
-  overflow-y: auto;
-  padding: 40px 56px 80px;
+  flex: 1; overflow-y: auto;
+  padding: 40px 56px 32px;
   max-width: 720px;
   margin-left: auto;
   width: 100%;
@@ -345,7 +349,7 @@
 .onb__preview__frame { flex: 1; }
 
 /* ============================================================
-   STICKY ACTION BAR (stepper nav)
+   ACTION BAR — pinned to bottom of left column only
    ============================================================ */
 .onb__actionbar {
   flex-shrink: 0;
@@ -354,6 +358,9 @@
   padding: 12px 56px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   min-height: 58px;
+  max-width: 720px;
+  margin-left: auto;
+  width: 100%;
 }
 .onb__actionbar__left { display: flex; align-items: center; min-width: 80px; }
 .onb__actionbar__right { display: flex; align-items: center; gap: 16px; }
@@ -398,7 +405,7 @@
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1200px) {
-  .onb__form { padding: 36px 40px 80px; }
+  .onb__form { padding: 36px 40px 24px; }
   .onb__actionbar { padding: 12px 40px; }
   .onb__layouts { grid-template-columns: repeat(4, 1fr); }
 }
@@ -408,8 +415,8 @@
   .onb__preview { display: none; }
   .onb__topbar__inner { grid-template-columns: 1fr auto; gap: 12px; }
   .onb__steprail { grid-column: 1 / -1; order: 3; overflow-x: auto; padding-bottom: 2px; }
-  .onb__form { padding: 28px 24px 80px; max-width: 100%; margin-left: 0; }
-  .onb__actionbar { padding: 12px 24px; }
+  .onb__form { padding: 28px 24px 16px; max-width: 100%; margin-left: 0; }
+  .onb__actionbar { padding: 12px 24px; max-width: 100%; margin-left: 0; }
 }
 @media (max-width: 640px) {
   .onb__saving { display: none; }
