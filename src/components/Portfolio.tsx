@@ -311,7 +311,7 @@ const SORTS: { v: SortKey; label: string }[] = [
 ];
 
 // ---------- ROOT ----------
-export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDTO; chatEnabled?: boolean }) {
+export default function Portfolio({ profile, chatEnabled, loggedIn }: { profile: ProfileDTO; chatEnabled?: boolean; loggedIn?: boolean }) {
   // The owner's saved theme (from the DB) is authoritative. The floating
   // picker only sets an in-session preview override (derived, no effect), so
   // it never overrides the saved default on the next load.
@@ -445,7 +445,7 @@ export default function Portfolio({ profile, chatEnabled }: { profile: ProfileDT
                 </button>
               )}
               <button type="button" onClick={() => setShareOpen(true)}>share</button>
-              <a href={`/${profile.username}/llm.txt`}>llm.txt</a>
+              {loggedIn && <Link href="/dashboard">dashboard</Link>}
             </nav>
           </header>
 
