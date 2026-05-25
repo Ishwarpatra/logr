@@ -63,7 +63,7 @@
 /* secondary bar actions (share / llm.txt / about) as readable hairline pills */
 .logr .bar__util { gap: 8px; }
 .logr .bar__util a, .logr .bar__util button:not(.bar__ask) {
-  color: var(--ink); padding: 6px 13px; border: 0.5px solid var(--rule-strong); border-radius: 8px;
+  color: var(--ink); padding: 6px 13px; border: 0.5px solid var(--rule-strong);
   transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
 .logr .bar__util a:hover, .logr .bar__util button:not(.bar__ask):hover {
@@ -587,7 +587,7 @@
 .logr .bar__ask {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em;
-  color: var(--paper); background: var(--user-accent); border: 0.5px solid var(--user-accent); border-radius: 8px;
+  color: var(--paper); background: var(--user-accent); border: 0.5px solid var(--user-accent);
   padding: 6px 13px; transition: opacity 160ms ease;
 }
 .logr .bar__ask:hover { opacity: 0.92; }
@@ -630,7 +630,7 @@
 .ask__suggest { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
 .ask__suggest button {
   text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; color: var(--ink);
-  border: 0.5px solid var(--rule-strong); border-radius: 8px; padding: 8px 14px;
+  border: 0.5px solid var(--rule-strong); padding: 8px 14px;
   transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
 }
 .ask__suggest button:hover { color: var(--paper); background: var(--ink); border-color: var(--ink); }
@@ -659,7 +659,7 @@
 .ask__form input:focus { border-color: var(--user-accent); }
 /* send — the primary action, brand accent */
 .ask__form button {
-  flex-shrink: 0; width: 40px; border-radius: 8px; border: 0.5px solid var(--user-accent);
+  flex-shrink: 0; width: 40px; border: 0.5px solid var(--user-accent);
   background: var(--user-accent); color: var(--paper); font-size: 16px;
   transition: opacity 160ms ease;
 }
@@ -701,7 +701,7 @@
 /* copy — the primary action, brand accent */
 .share__row button, .share__prompt button {
   flex-shrink: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--paper);
-  background: var(--user-accent); border: 0.5px solid var(--user-accent); border-radius: 8px; padding: 8px 14px;
+  background: var(--user-accent); border: 0.5px solid var(--user-accent); padding: 8px 14px;
   transition: opacity 160ms ease;
 }
 .share__row button:hover, .share__prompt button:hover { opacity: 0.92; }

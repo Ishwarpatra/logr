@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition, useMemo } from "react";
+import { useState, useEffect, useTransition, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Portfolio from "@/components/Portfolio";
 import { Mark } from "@/components/Mark";
@@ -23,12 +23,114 @@ const disp = (iso: string, full: boolean) => {
 
 type HandleState = "" | "checking" | "ok" | "taken" | "invalid";
 
+const LAYOUT_SVGS: Record<string, React.ReactElement> = {
+  timeline: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <line x1="14" y1="6" x2="14" y2="52" />
+      <circle cx="14" cy="14" r="2.5" fill="currentColor" />
+      <circle cx="14" cy="30" r="2" fill="currentColor" />
+      <circle cx="14" cy="44" r="1.5" fill="currentColor" />
+      <line x1="22" y1="14" x2="100" y2="14" />
+      <line x1="22" y1="18" x2="80" y2="18" opacity="0.4" />
+      <line x1="22" y1="30" x2="92" y2="30" />
+      <line x1="22" y1="34" x2="72" y2="34" opacity="0.4" />
+      <line x1="22" y1="44" x2="86" y2="44" />
+    </svg>
+  ),
+  journal: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <line x1="8" y1="12" x2="32" y2="12" />
+      <line x1="38" y1="12" x2="108" y2="12" />
+      <line x1="38" y1="17" x2="98" y2="17" opacity="0.5" />
+      <line x1="8" y1="28" x2="32" y2="28" />
+      <line x1="38" y1="28" x2="104" y2="28" />
+      <line x1="38" y1="33" x2="90" y2="33" opacity="0.5" />
+      <line x1="8" y1="44" x2="32" y2="44" />
+      <line x1="38" y1="44" x2="100" y2="44" />
+      <line x1="38" y1="49" x2="86" y2="49" opacity="0.5" />
+    </svg>
+  ),
+  magazine: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <rect x="8" y="6" width="60" height="22" fill="currentColor" stroke="none" opacity="0.85" />
+      <line x1="72" y1="10" x2="108" y2="10" />
+      <line x1="72" y1="15" x2="104" y2="15" opacity="0.5" />
+      <line x1="72" y1="20" x2="100" y2="20" opacity="0.5" />
+      <line x1="8" y1="36" x2="108" y2="36" strokeWidth="1.2" />
+      <line x1="8" y1="42" x2="92" y2="42" />
+      <line x1="8" y1="47" x2="80" y2="47" opacity="0.5" />
+      <line x1="8" y1="52" x2="86" y2="52" opacity="0.5" />
+    </svg>
+  ),
+  terminal: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <rect x="6" y="6" width="108" height="46" strokeDasharray="1.5 1.5" />
+      <text x="12" y="18" fontFamily="monospace" fontSize="6" fill="currentColor">&gt; logr</text>
+      <text x="12" y="28" fontFamily="monospace" fontSize="5" fill="currentColor" opacity="0.7">2026.05 milestone</text>
+      <text x="12" y="38" fontFamily="monospace" fontSize="5" fill="currentColor" opacity="0.5">2023.04 win</text>
+      <text x="12" y="47" fontFamily="monospace" fontSize="5" fill="currentColor" opacity="0.4">2019.--- founded</text>
+    </svg>
+  ),
+  feed: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <line x1="8" y1="10" x2="108" y2="10" />
+      <line x1="8" y1="14" x2="88" y2="14" opacity="0.4" />
+      <line x1="8" y1="23" x2="108" y2="23" />
+      <line x1="8" y1="27" x2="78" y2="27" opacity="0.4" />
+      <line x1="8" y1="36" x2="102" y2="36" />
+      <line x1="8" y1="40" x2="82" y2="40" opacity="0.4" />
+      <line x1="8" y1="49" x2="95" y2="49" />
+    </svg>
+  ),
+  card: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <rect x="8" y="8" width="48" height="42" />
+      <line x1="16" y1="20" x2="46" y2="20" />
+      <line x1="16" y1="25" x2="40" y2="25" opacity="0.5" />
+      <line x1="16" y1="30" x2="44" y2="30" opacity="0.4" />
+      <rect x="64" y="8" width="48" height="42" />
+      <line x1="72" y1="20" x2="102" y2="20" />
+      <line x1="72" y1="25" x2="96" y2="25" opacity="0.5" />
+      <line x1="72" y1="30" x2="100" y2="30" opacity="0.4" />
+    </svg>
+  ),
+  centered: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <line x1="60" y1="4" x2="60" y2="54" strokeWidth="0.5" />
+      <line x1="16" y1="14" x2="54" y2="14" />
+      <line x1="18" y1="18" x2="52" y2="18" opacity="0.4" />
+      <circle cx="60" cy="14" r="2" fill="currentColor" />
+      <line x1="66" y1="28" x2="104" y2="28" />
+      <line x1="68" y1="32" x2="104" y2="32" opacity="0.4" />
+      <circle cx="60" cy="28" r="2" fill="currentColor" />
+      <line x1="16" y1="44" x2="54" y2="44" />
+      <line x1="20" y1="48" x2="52" y2="48" opacity="0.4" />
+      <circle cx="60" cy="44" r="2" fill="currentColor" />
+    </svg>
+  ),
+  polaroid: (
+    <svg viewBox="0 0 120 58" fill="none" stroke="currentColor" strokeWidth="0.8" aria-hidden="true">
+      <rect x="8" y="6" width="26" height="26" fill="currentColor" stroke="none" opacity="0.15" />
+      <rect x="8" y="6" width="26" height="26" />
+      <line x1="8" y1="38" x2="34" y2="38" opacity="0.6" />
+      <line x1="10" y1="42" x2="30" y2="42" opacity="0.4" />
+      <rect x="47" y="12" width="26" height="26" fill="currentColor" stroke="none" opacity="0.15" />
+      <rect x="47" y="12" width="26" height="26" />
+      <line x1="47" y1="44" x2="73" y2="44" opacity="0.6" />
+      <rect x="86" y="8" width="26" height="26" fill="currentColor" stroke="none" opacity="0.15" />
+      <rect x="86" y="8" width="26" height="26" />
+      <line x1="86" y1="40" x2="112" y2="40" opacity="0.6" />
+    </svg>
+  ),
+};
+
 export function Onboarding({ name: initialName, image, suggestedHandle }: { name: string; image: string; suggestedHandle: string }) {
   const router = useRouter();
   const [name, setName] = useState(initialName);
   const [handle, setHandle] = useState(suggestedHandle);
   const [bio, setBio] = useState("");
   const [story, setStory] = useState("");
+  const [wordCount, setWordCount] = useState(0);
   const [events, setEvents] = useState<ReviewEvent[]>([]);
   const [palette, setPalette] = useState("paper");
   const [layout, setLayout] = useState("timeline");
@@ -38,7 +140,20 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
   const [error, setError] = useState<string | null>(null);
   const [publishing, startPublish] = useTransition();
 
-  // debounced handle availability
+  // stepper
+  const [step, setStep] = useState(0);
+  const [dir, setDir] = useState<"fwd" | "bck">("fwd");
+  const publishBtnRef = useRef<HTMLButtonElement>(null);
+
+  const goTo = useCallback((n: number) => {
+    setDir(n >= step ? "fwd" : "bck");
+    setStep(n);
+  }, [step]);
+
+  const nextStep = useCallback(() => goTo(Math.min(step + 1, 2)), [goTo, step]);
+  const prevStep = useCallback(() => goTo(Math.max(step - 1, 0)), [goTo, step]);
+
+  // handle availability debounce
   useEffect(() => {
     const h = handle.trim().toLowerCase();
     const t = setTimeout(async () => {
@@ -63,6 +178,7 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
       const evs = await narrateEventsAction(story);
       setEvents((prev) => [...prev, ...evs]);
       setStory("");
+      setWordCount(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't read that.");
     } finally {
@@ -109,82 +225,255 @@ export function Onboarding({ name: initialName, image, suggestedHandle }: { name
     })),
   }), [handle, name, bio, image, palette, layout, events]);
 
+  const canGoNext0 = hstate === "ok" && !!name.trim();
   const canPublish = hstate === "ok" && !!name.trim() && !publishing;
 
   return (
     <div className="onb">
-      <div className="onb__panel">
-        <div className="onb__brand"><Mark />logr</div>
-        <h1 className="onb__h1">let&apos;s build your logr<span className="onb__caret" /></h1>
-        <p className="onb__lead">a few words about you, then tell your story — watch it become a timeline on the right.</p>
 
-        {/* identity */}
-        <div className="onb__step">
-          <span className="onb__num">01 — you</span>
-          <div className="onb__id">
-            <span className="onb__avatar">
-              {image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={image} alt="" />
-              ) : (
-                <span>{(name || "·").charAt(0).toLowerCase()}</span>
-              )}
-            </span>
-            <div className="onb__id__fields">
-              <input className="onb__input" value={name} onChange={(e) => setName(e.target.value)} placeholder="your name" />
-              <div className="onb__handle">
-                <span className="onb__handle__prefix">logr.life/</span>
-                <input value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase())} placeholder="handle" />
-                <span className={`onb__handle__status onb__handle__status--${hstate}`}>
-                  {hstate === "checking" ? "…" : hstate === "ok" ? "available ✓" : hstate === "taken" ? "taken" : herror ?? ""}
-                </span>
-              </div>
-            </div>
-          </div>
-          <input className="onb__input" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="one-line bio (e.g. a builder, in crypto since 2018)" />
-        </div>
-
-        {/* narrate */}
-        <div className="onb__step">
-          <span className="onb__num">02 — your story <span className="onb__hint">the magic ✶</span></span>
-          <textarea className="onb__textarea" rows={5} value={story} onChange={(e) => setStory(e.target.value)} placeholder="In plain words: what you've built, won, shipped — with rough dates and any links. e.g. 'Founded Consenso Labs in 2019. Won the AA hackathon in April 2023 with ZenGuard. Launched brewit in April 2025…'" />
-          <div className="onb__row">
-            <button type="button" className="onb__btn" onClick={narrate} disabled={reading || !story.trim()}>
-              {reading ? "reading…" : events.length ? "+ add more →" : "build my timeline →"}
-            </button>
-            {events.length > 0 && <span className="onb__count">{events.length} event{events.length > 1 ? "s" : ""} drafted</span>}
-          </div>
-          {error && <p className="onb__error">{error}</p>}
-        </div>
-
-        {/* look */}
-        <div className="onb__step">
-          <span className="onb__num">03 — look</span>
-          <div className="onb__layouts">
-            {Object.entries(LAYOUTS).map(([k, l]) => (
-              <button key={k} type="button" className="onb__layout" aria-current={layout === k} onClick={() => setLayout(k)}>{l.name}</button>
-            ))}
-          </div>
-          <div className="onb__palettes">
-            {Object.entries(PALETTES).map(([k, p]) => (
-              <button key={k} type="button" className="onb__pal" aria-current={palette === k} title={p.name} onClick={() => setPalette(k)} style={{ background: p.paper }}>
-                <span style={{ background: p.ink }} /><span style={{ background: p.accent }} />
+      {/* ---- top bar ---- */}
+      <header className="onb__topbar">
+        <div className="onb__topbar__inner">
+          <div className="onb__brand"><Mark />logr</div>
+          <nav className="onb__steprail" aria-label="onboarding steps">
+            {(["01 you", "02 story", "03 look"] as const).map((label, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-current={step === i ? true : undefined}
+                data-done={step > i ? true : undefined}
+                onClick={() => goTo(i)}
+              >
+                {label}
               </button>
             ))}
+            <span className="onb__steprail__sep" aria-hidden="true" />
+            <button type="button" onClick={() => publishBtnRef.current?.focus()}>publish</button>
+          </nav>
+          <div className="onb__topbar__util">
+            <span className="onb__saving">
+              <span className="onb__saving__dot" aria-hidden="true" />
+              draft saved
+            </span>
           </div>
         </div>
+      </header>
 
-        <button type="button" className="onb__publish" onClick={publish} disabled={!canPublish}>
-          {publishing ? "publishing…" : "publish & go live →"}
-        </button>
-        <p className="onb__fineprint">you can edit everything in the dashboard after.</p>
+      {/* ---- main shell ---- */}
+      <div className="onb__shell">
+
+        {/* LEFT: STEPPER FORM */}
+        <section className="onb__form" aria-label="build your logr">
+          <div key={step} className={`onb__step-content onb__step-content--${dir}`}>
+
+            {/* ── step 0: you ── */}
+            {step === 0 && (
+              <div className="onb__fsec">
+                <div className="onb__fsec__head">
+                  <h2 className="onb__fsec__title">
+                    <span className="onb__fsec__num"><span className="onb__ac">01</span></span>
+                    you
+                  </h2>
+                </div>
+
+                <div className="onb__you">
+                  <span className="onb__avatar-wrap">
+                    {image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={image} alt="" />
+                    ) : (
+                      <span className="onb__avatar-letter">{(name || "·").charAt(0).toLowerCase()}</span>
+                    )}
+                  </span>
+
+                  <div className="onb__field onb__field--row">
+                    <div className="onb__field__line">
+                      <input className="onb__field__input" value={name} onChange={(e) => setName(e.target.value)} placeholder="your name" autoFocus />
+                    </div>
+                  </div>
+
+                  <div className="onb__field onb__field--row">
+                    <div className="onb__field__line">
+                      <span className="onb__field__prefix">logr.life<span className="onb__slash">/</span></span>
+                      <input className="onb__field__input" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase())} placeholder="handle" />
+                      <span className={`onb__field__status onb__field__status--${hstate}`}>
+                        {hstate === "checking" ? (
+                          <><span className="onb__field__status__dot" /> checking…</>
+                        ) : hstate === "ok" ? (
+                          <><span className="onb__field__status__dot" /> available</>
+                        ) : hstate === "taken" ? "taken" : herror ?? ""}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="onb__field onb__field--row">
+                    <div className="onb__field__line">
+                      <input className="onb__field__input" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="one line about you" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── step 1: story ── */}
+            {step === 1 && (
+              <div className="onb__fsec">
+                <div className="onb__fsec__head">
+                  <h2 className="onb__fsec__title">
+                    <span className="onb__fsec__num"><span className="onb__ac">02</span></span>
+                    story
+                  </h2>
+                  <span className="onb__fsec__badge">type it like a friend asked — we&apos;ll find the dates</span>
+                </div>
+
+                <textarea
+                  className="onb__story__field"
+                  rows={6}
+                  value={story}
+                  onChange={(e) => {
+                    setStory(e.target.value);
+                    setWordCount(e.target.value.trim().split(/\s+/).filter(Boolean).length);
+                  }}
+                  placeholder="Founded Consenso Labs in 2019. Won the AA hackathon in April 2023 with ZenGuard. Launched brewit in April 2025…"
+                  autoFocus
+                />
+
+                <div className="onb__story__readout">
+                  {events.length > 0 ? (
+                    <span className="onb__story__readout__count">
+                      <strong>{events.length}</strong> event{events.length > 1 ? "s" : ""} drafted
+                    </span>
+                  ) : null}
+                  <span className="onb__dim">{wordCount > 0 ? `${wordCount} words` : "write your story above"}</span>
+                </div>
+
+                <div className="onb__story__actions">
+                  <button type="button" className="onb__story__btn" onClick={narrate} disabled={reading || !story.trim()}>
+                    {reading ? "reading…" : events.length ? "+ add more →" : "build my timeline →"}
+                  </button>
+                </div>
+
+                {error && <p className="onb__error">{error}</p>}
+
+                {events.length > 0 && (
+                  <div className="onb__chips">
+                    {events.slice(0, 6).map((e, i) => (
+                      <span key={i} className="onb__chip">
+                        <span className="onb__chip__year">{e.dateOn.slice(0, 4)}</span>
+                        <span>{e.title.length > 32 ? e.title.slice(0, 32) + "…" : e.title}</span>
+                      </span>
+                    ))}
+                    {events.length > 6 && (
+                      <span className="onb__chip onb__chip--more">+{events.length - 6} more</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── step 2: look ── */}
+            {step === 2 && (
+              <div className="onb__fsec">
+                <div className="onb__fsec__head">
+                  <h2 className="onb__fsec__title">
+                    <span className="onb__fsec__num"><span className="onb__ac">03</span></span>
+                    look
+                  </h2>
+                </div>
+
+                <div className="onb__look">
+                  <div>
+                    <div className="onb__look__subhead">layout</div>
+                    <div className="onb__layouts">
+                      {Object.entries(LAYOUTS).map(([k, l]) => (
+                        <button key={k} type="button" className="onb__layout-card" aria-pressed={layout === k} onClick={() => setLayout(k)}>
+                          {LAYOUT_SVGS[k] ?? LAYOUT_SVGS.timeline}
+                          <div>
+                            <div className="onb__layout-card__name">{l.name}</div>
+                            <div className="onb__layout-card__note">{l.note}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="onb__look__subhead">palette</div>
+                    <div className="onb__palettes">
+                      {Object.entries(PALETTES).map(([k, p]) => (
+                        <button key={k} type="button" className="onb__palette-card" aria-pressed={palette === k} onClick={() => setPalette(k)}>
+                          <span className="onb__palette-card__swatch" style={{ background: p.paper }}>
+                            <span className="onb__swatch__ink" style={{ background: p.ink }} />
+                            <span className="onb__swatch__acc" style={{ background: p.accent }} />
+                          </span>
+                          <span>
+                            <span className="onb__palette-card__name">{p.name}</span>
+                            <br />
+                            <span className="onb__palette-card__note">{p.note}</span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </section>
+
+        <div className="onb__shell__divider" aria-hidden="true" />
+
+        {/* RIGHT: LIVE PREVIEW */}
+        <aside className="onb__preview" aria-label="live preview">
+          <div className="onb__preview__head">
+            <span>logr.life/{handle || "you"}</span>
+            <span className="onb__live">
+              <span className="onb__live__dot" aria-hidden="true" />
+              LIVE
+            </span>
+          </div>
+          <div className="onb__preview__frame">
+            <Portfolio profile={preview} chatEnabled={false} />
+          </div>
+        </aside>
+
       </div>
 
-      <div className="onb__preview">
-        <div className="onb__preview__frame">
-          <Portfolio profile={preview} chatEnabled={false} />
+      {/* ---- sticky action bar ---- */}
+      <footer className="onb__actionbar">
+        <div className="onb__actionbar__left">
+          {step > 0 && (
+            <button type="button" className="onb__back-btn" onClick={prevStep}>← back</button>
+          )}
         </div>
-      </div>
+
+        <div className="onb__actionbar__right">
+          <span className="onb__step-ind">{step + 1} / 3</span>
+
+          {step < 2 ? (
+            <button
+              type="button"
+              className="onb__next-btn"
+              onClick={nextStep}
+              disabled={step === 0 && !canGoNext0}
+            >
+              next →
+            </button>
+          ) : (
+            <button
+              ref={publishBtnRef}
+              type="button"
+              className="onb__publish"
+              onClick={publish}
+              disabled={!canPublish}
+            >
+              {publishing ? "publishing…" : "publish & go live →"}
+            </button>
+          )}
+        </div>
+      </footer>
+
     </div>
   );
 }

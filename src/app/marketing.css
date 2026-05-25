@@ -37,7 +37,7 @@
 .mkt .bar__brand { font-family: var(--serif); font-size: 22px; letter-spacing: -0.045em; line-height: 1; color: var(--ink); }
 .mkt .bar__brand .colon { color: var(--user-accent); }
 .mkt .bar__util { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--ink); letter-spacing: 0.05em; }
-.mkt .bar__util a { color: var(--ink); padding: 6px 13px; border: 0.5px solid var(--rule-strong); border-radius: 8px; white-space: nowrap; transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease; }
+.mkt .bar__util a { color: var(--ink); padding: 6px 13px; border: 0.5px solid var(--rule-strong); white-space: nowrap; transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease; }
 .mkt .bar__util a:hover { color: var(--paper); background: var(--ink); border-color: var(--ink); }
 .mkt .bar__util .cta { color: var(--paper); background: var(--user-accent); border-color: var(--user-accent); }
 .mkt .bar__util .cta:hover { color: var(--paper); background: var(--user-accent); border-color: var(--user-accent); opacity: 0.92; }
@@ -87,7 +87,7 @@
 .mkt .handle-input__prefix .accent { color: var(--user-accent); }
 .mkt .handle-input input { font: inherit; font-family: var(--serif); background: transparent; border: 0; color: var(--ink); padding: 0 0 0 2px; width: 100%; outline: none; }
 .mkt .handle-input input::placeholder { color: var(--faint); font-style: italic; }
-.mkt .hero__claim { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; background: var(--user-accent); color: var(--paper); padding: 11px 22px; border: 0.5px solid var(--user-accent); border-radius: 8px; box-shadow: 0 8px 22px -12px color-mix(in srgb, var(--user-accent) 80%, transparent); transition: opacity 160ms ease, transform 140ms ease; }
+.mkt .hero__claim { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; background: var(--user-accent); color: var(--paper); padding: 11px 22px; border: 0.5px solid var(--user-accent); transition: opacity 160ms ease, transform 140ms ease; }
 .mkt .hero__claim:hover { opacity: 0.92; transform: translateY(-1px); }
 .mkt .hero__claim:active { transform: scale(0.98); }
 .mkt .hero__claim:disabled { opacity: 0.7; cursor: default; }
