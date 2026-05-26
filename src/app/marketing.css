@@ -202,16 +202,19 @@
 .mkt .hv-entry::before { content: ""; position: absolute; left: -23px; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); opacity: 0.45; }
 .mkt .hv-entry--now::before { background: var(--user-accent); width: 9px; height: 9px; left: -24px; top: 4px; opacity: 1; }
 .mkt .hv-entry--recent::before { width: 7px; height: 7px; left: -23.5px; opacity: 0.8; }
-.mkt .hv-entry__date { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 3px; }
+.mkt .hv-entry__meta { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+.mkt .hv-entry__icon { font-size: 13px; line-height: 1; flex-shrink: 0; }
+.mkt .hv-entry__date { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
 .mkt .hv-entry__title { font-family: var(--serif); font-size: 16px; line-height: 1.32; letter-spacing: -0.015em; color: var(--ink); margin-bottom: 4px; }
 .mkt .hv-entry__body { font-family: var(--sans); font-size: 13px; line-height: 1.5; color: var(--muted); margin: 0; }
-.mkt .hv-entry__img { width: 100%; height: 56px; background: color-mix(in srgb, var(--user-accent) 10%, var(--paper)); border: 0.5px solid var(--rule); margin-top: 7px; display: block; animation: pw-pop 0.32s cubic-bezier(.2,.8,.2,1) both; }
+.mkt .hv-images { display: flex; gap: 4px; margin-top: 8px; animation: pw-pop 0.32s cubic-bezier(.2,.8,.2,1) both; }
+.mkt .hv-img-svg { flex: 1; min-width: 0; border: 0.5px solid var(--rule); border-radius: 3px; display: block; overflow: hidden; }
 .mkt .hv-tweet { margin-top: 7px; border: 0.5px solid var(--rule); padding: 8px 11px; display: flex; flex-direction: column; gap: 4px; animation: pw-pop 0.32s cubic-bezier(.2,.8,.2,1) both; }
 .mkt .hv-tweet__user { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.05em; color: var(--muted); }
 .mkt .hv-tweet__user .accent { color: var(--user-accent); }
 .mkt .hv-tweet__text { font-family: var(--serif); font-size: 12.5px; line-height: 1.4; color: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
-  .mkt .hv-entry, .mkt .hv-tweet, .mkt .hv-entry__img { animation: none; }
+  .mkt .hv-entry, .mkt .hv-tweet, .mkt .hv-images { animation: none; }
 }
 
 /* Machine Voice chat interface */
