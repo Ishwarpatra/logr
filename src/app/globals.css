@@ -41,5 +41,5 @@
 .mark .d-bot { width: 0.2em; height: 0.2em; background: var(--ink); }
 /* brand lockups: mark to the left of the wordmark */
 .bar__brand, .foot .brand, .foot__wm, .foot__bottom .brand, .hero__wordmark { display: inline-flex; align-items: center; gap: 0.32em; }
-.dash .bar__brand a, .login-brand { display: inline-flex; align-items: center; gap: 0.32em; }
+.bar__brand a, .login-brand { display: inline-flex; align-items: center; gap: 0.32em; }
 .hero__wordmark { gap: 0.1em; }
