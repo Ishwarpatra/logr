@@ -11,10 +11,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { username } = await params;
   const profile = await getProfile(username);
   if (!profile) return {};
-  return {
+  const meta: Metadata = {
     title: `${profile.name} — a record, latest first`,
     description: profile.bio.replace(/\n/g, " "),
   };
+  if (profile.avatarUrl) {
+    meta.openGraph = { images: [profile.avatarUrl] };
+    meta.twitter = { card: "summary", images: [profile.avatarUrl] };
+  }
+  return meta;
 }
 
 export default async function UserPortfolio({ params }: Params) {
