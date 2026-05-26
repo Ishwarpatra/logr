@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HandleClaim } from "./HandleClaim";
 import { RevealObserver } from "./Reveal";
 import { ComposeDemo, AskDemo, GrowDemo } from "./StepDemos";
+import { HumanVoiceDemo, MachineVoiceChat } from "./DualDemos";
 import { Mark } from "@/components/Mark";
 
 // The logr marketing landing. Static brand copy; koshik is the example logr.
@@ -42,8 +43,9 @@ export function Landing() {
           </h1>
           <p className="hero__lede">the story a resume can&apos;t tell. read by humans, ingested by agents.</p>
           <p className="hero__sub">
-            a resume, a linkedin, a twitter bio — none of them hold your whole story, and none speak to the agents now reading on someone&apos;s behalf. log every event once. logr makes it a timeline humans read and an{" "}
-            <span style={{ color: "var(--user-accent)" }}>llm.txt</span> any agent can ingest. one log. two readers.
+            a resume, a linkedin, a twitter bio — none of them hold your whole story, and none speak to the agents now reading on someone&apos;s behalf. log every event once. logr makes it a timeline humans read, an{" "}
+            <span style={{ color: "var(--user-accent)" }}>llm.txt</span> agents ingest, and a{" "}
+            <span style={{ color: "var(--user-accent)" }}>/ask</span> endpoint any agent can query. one log. every reader.
           </p>
           <div className="hero__cta">
             <HandleClaim id="handle-hero" />
@@ -57,32 +59,20 @@ export function Landing() {
           <div className="section__head">
             <div className="section__num">01 — the duality</div>
             <div>
-              <h2 className="section__title">one entry<span className="colon">.</span> two readings<span className="colon">.</span></h2>
-              <p className="section__sub">you log it once. it reads as prose for the people who know you, and as structured context for the agents who don&apos;t.</p>
+              <h2 className="section__title">one entry<span className="colon">.</span> every reader<span className="colon">.</span></h2>
+              <p className="section__sub">you log it once. humans read your story. agents read your context. the same entry, both ways at once.</p>
             </div>
           </div>
           <div className="dual">
             <div className="dual__col">
               <div className="dual__head"><span>the human voice</span><span className="accent">serif</span></div>
-              <div className="dual__entry">
-                <div className="dual__entry__date">2026.02</div>
-                <h3 className="dual__entry__title">built zhentan. won the bnb openclaw hackathon.</h3>
-                <p className="dual__entry__body">top project out of 600 builders. the community spun up a token within hours; it hit a $250k market cap and crossed 150 users in week one. felt good.</p>
-              </div>
+              <HumanVoiceDemo />
               <div className="dual__legend"><div>read at the speed of a sentence.</div><div>noticed by a person who knows you.</div></div>
             </div>
             <div className="dual__col">
-              <div className="dual__head"><span>the machine voice</span><span className="accent">llm.txt</span></div>
-              <pre className="dual__ai"><span className="hash">## 2026.02 · milestone</span>{"\n"}
-<span className="k">event:</span>       <span className="v">won bnb openclaw hackathon</span>{"\n"}
-<span className="k">project:</span>     <span className="v">zhentan</span>{"\n"}
-<span className="k">role:</span>        <span className="v">builder</span>{"\n"}
-<span className="k">competitors:</span> <span className="v">600</span>{"\n"}
-<span className="k">outcome:</span>     <span className="accent">top project</span>{"\n"}
-<span className="k">traction:</span>    <span className="v">$250k market cap; 150 users wk one</span>{"\n"}
-<span className="k">url:</span>         <span className="v">zhentan.me</span>{"\n"}
-<span className="k">tags:</span>        <span className="v">crypto, hackathon, bnb</span></pre>
-              <div className="dual__legend"><div>read at the speed of a token.</div><div>ingested as context by an agent.</div></div>
+              <div className="dual__head"><span>the machine voice</span><span className="accent">/ ask</span></div>
+              <MachineVoiceChat />
+              <div className="dual__legend"><div>ask it anything about the profile.</div><div>grounded in your log, not the model.</div></div>
             </div>
           </div>
         </section>
