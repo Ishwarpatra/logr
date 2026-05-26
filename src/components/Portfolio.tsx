@@ -430,7 +430,7 @@ export default function Portfolio({ profile, chatEnabled, loggedIn }: { profile:
         <div className="page">
           {/* bar */}
           <header className="bar">
-            <span className="bar__brand"><Mark />logr</span>
+            <span className="bar__brand"><Link href="/"><Mark />logr</Link></span>
             <nav className="bar__util" aria-label="utilities">
               {chatEnabled && (
                 <button className="bar__ask" onClick={() => setChatOpen((o) => !o)} aria-label={`ask about ${profile.name}`}>
