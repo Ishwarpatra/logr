@@ -21,6 +21,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && user) session.user.id = user.id;
       return session;
     },
+    async signIn({ account, profile, user }) {
+      // Block Auth.js's automatic account-linking: if this Google account's email
+      // differs from the email already on the User record, deny the link.
+      // Without this, signing in with a second Google account while a session is
+      // active silently merges both accounts into one User.
+      if (account?.provider === "google" && user?.email && profile?.email) {
+        if (user.email !== profile.email) return false;
+      }
+      return true;
+    },
   },
 });
 
