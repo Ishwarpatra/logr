@@ -15,10 +15,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     title: `${profile.name} — a record, latest first`,
     description: profile.bio.replace(/\n/g, " "),
   };
-  if (profile.avatarUrl) {
-    meta.openGraph = { images: [profile.avatarUrl] };
-    meta.twitter = { card: "summary", images: [profile.avatarUrl] };
-  }
+  meta.twitter = { card: "summary_large_image" };
   return meta;
 }
 
