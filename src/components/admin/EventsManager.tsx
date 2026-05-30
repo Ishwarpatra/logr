@@ -17,6 +17,7 @@ import { uploadImage } from "@/lib/upload";
 import { parseVideoUrl, parseTweetUrl } from "@/lib/video";
 import { DatePicker } from "./DatePicker";
 import { NarrateDialog } from "./NarrateDialog";
+import { ImportDialog } from "./ImportDialog";
 import type { MediaItem } from "@/lib/profile";
 
 export type EditableEvent = {
@@ -324,6 +325,7 @@ export function EventsManager({ events }: { events: EditableEvent[] }) {
   const [dialog, setDialog] = useState<EventInput | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<EditableEvent | null>(null);
   const [narrate, setNarrate] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [pending, start] = useTransition();
 
   // Local order for drag-and-drop; resynced from props when the set/order changes.
@@ -355,6 +357,7 @@ export function EventsManager({ events }: { events: EditableEvent[] }) {
         <div className="hl-head">
           <span className="hl-count"><span className="accent">{items.length}</span> events · <span className="accent">{featuredCount}</span> in highlights · drag to reorder</span>
           <span className="hl-head__actions">
+            <button type="button" className="btn btn--small btn--ghost" onClick={() => setImporting(true)}>↑ import</button>
             <button type="button" className="btn btn--small btn--ghost" onClick={() => setNarrate(true)}>✎ narrate</button>
             <button type="button" className="btn btn--small" onClick={() => setDialog(emptyDraft(nextPosition))}>+ add event</button>
           </span>
@@ -373,6 +376,7 @@ export function EventsManager({ events }: { events: EditableEvent[] }) {
         </Reorder.Group>
       </div>
 
+      {importing && <ImportDialog onClose={() => setImporting(false)} />}
       {narrate && <NarrateDialog onClose={() => setNarrate(false)} />}
 
       {dialog && (
