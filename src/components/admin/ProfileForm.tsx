@@ -98,7 +98,22 @@ export function ProfileForm({ profile }: { profile: ProfileDTO }) {
             id="f-socials"
             name="socials"
             rows={3}
-            defaultValue={profile.socials.map((s) => `${s.label} ${s.href}`).join("\n")}
+            defaultValue={profile.socials
+              .map((s) => {
+                const cleanLabel = s.label.trim().toLowerCase()
+                  .replace(/^(?:https?:\/\/)?(?:www\.)?/i, "")
+                  .replace(/^mailto:/i, "")
+                  .replace(/\/$/, "");
+                const cleanHref = s.href.trim().toLowerCase()
+                  .replace(/^(?:https?:\/\/)?(?:www\.)?/i, "")
+                  .replace(/^mailto:/i, "")
+                  .replace(/\/$/, "");
+                if (cleanLabel === cleanHref) {
+                  return s.label;
+                }
+                return `${s.label} ${s.href}`;
+              })
+              .join("\n")}
           />
           <span className="field__hint">one per line · &lt;label&gt; &lt;url&gt;</span>
         </div>

@@ -39,15 +39,35 @@ export async function googleSignInAction() {
 
 // ---------- PROFILE ----------
 function parseSocials(raw: string) {
-  // One per line: "Label https://url"
+  // One per line: "Label url"
   return raw
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const m = line.match(/^(.*?)\s+(https?:\/\/\S+)$/);
-      if (m) return { label: m[1].trim(), href: m[2].trim() };
-      return { label: line, href: line };
+      const m = line.match(/^(.*?)\s+(\S+)$/);
+      if (m) {
+        const label = m[1].trim();
+        let href = m[2].trim();
+        if (!/^(?:https?|mailto|tel):/i.test(href)) {
+          if (/@\S+\.\S+/.test(href)) {
+            href = `mailto:${href}`;
+          } else {
+            href = `https://${href}`;
+          }
+        }
+        return { label, href };
+      }
+      
+      let href = line;
+      if (!/^(?:https?|mailto|tel):/i.test(href)) {
+        if (/@\S+\.\S+/.test(href)) {
+          href = `mailto:${href}`;
+        } else {
+          href = `https://${href}`;
+        }
+      }
+      return { label: line, href };
     });
 }
 
