@@ -37,6 +37,7 @@ export async function googleSignInAction() {
   await signIn("google", { redirectTo: "/welcome" });
 }
 
+
 // ---------- PROFILE ----------
 function parseSocials(raw: string) {
   // One per line: "Label url"
@@ -112,12 +113,17 @@ export async function createProfileAction(
       name: input.name.trim() || username,
       handle: `@${username}`,
       bio: input.bio.trim(),
-      status: "",
-      location: "",
+      status: "Establishing link...",
+      location: "Earth",
       about: null,
       avatarUrl: input.avatarUrl || null,
       socials: "[]",
       theme: JSON.stringify(DEFAULT_THEME),
+      
+      // NEW: Inject default command center data for new users!
+      activeOrbit: "Exploring the tech frontier\nBuilding scalable solutions",
+      dsaMetrics: "TypeScript: Active\nReact: Active",
+      sysArchitecture: "TypeScript, React, Node.js",
     },
   });
   return { ok: true, username };
@@ -137,6 +143,9 @@ export async function updateProfileAction(formData: FormData) {
       about: String(formData.get("about") ?? "") || null,
       avatarUrl: String(formData.get("avatarUrl") ?? "") || null,
       socials: JSON.stringify(socials),
+      activeOrbit: String(formData.get("activeOrbit") ?? "") || null,
+      dsaMetrics: String(formData.get("dsaMetrics") ?? "") || null,
+      sysArchitecture: String(formData.get("sysArchitecture") ?? "") || null,
     },
   });
   await revalidateForProfile(profileId);
