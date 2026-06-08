@@ -272,9 +272,7 @@ async function resolveMedia(links: string[]): Promise<MediaInput[]> {
   return out;
 }
 
-/** Extract structured events (with link/video/tweet media) from a narrative. */
-export async function narrateEventsAction(text: string): Promise<ReviewEvent[]> {
-  await requireSignedIn();
+async function narrateText(text: string): Promise<ReviewEvent[]> {
   if (!isChatEnabled()) throw new Error("Chat is not configured.");
   if (!text.trim()) return [];
   const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY! });
@@ -284,7 +282,7 @@ export async function narrateEventsAction(text: string): Promise<ReviewEvent[]> 
       "You output ONLY a raw JSON object — no prose, no markdown fences, no commentary. " +
       'Shape: {"events":[{"dateOn":"YYYY-MM-DD","fullDate":boolean,"title":string,"tags":string[],"featured":boolean,"body":string,"links":string[]}]}. ' +
       "tags must be a subset of: work, milestone, talk, side_quest, writing. links are full https URLs mentioned for the event.",
-    prompt: buildNarratePrompt(text.slice(0, 6000)),
+    prompt: buildNarratePrompt(text.slice(0, 8000)),
     temperature: 0.2,
   });
   const parsed = parseNarrated(out);
@@ -299,6 +297,46 @@ export async function narrateEventsAction(text: string): Promise<ReviewEvent[]> 
       media: await resolveMedia(e.links),
     }))
   );
+}
+
+/** Extract structured events (with link/video/tweet media) from a narrative. */
+export async function narrateEventsAction(text: string): Promise<ReviewEvent[]> {
+  await requireSignedIn();
+  return narrateText(text);
+}
+
+const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5 MB
+
+/** Extract events from an uploaded resume (PDF, DOCX, or plain text). */
+export async function importFileAction(formData: FormData): Promise<ReviewEvent[]> {
+  await requireSignedIn();
+  const file = formData.get("file") as File | null;
+  if (!file) throw new Error("No file provided.");
+  if (file.size > FILE_SIZE_LIMIT) throw new Error("File is too large (max 5 MB).");
+
+  const { extractPdfText, extractDocxText } = await import("@/lib/import");
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const name = file.name.toLowerCase();
+
+  let text: string;
+  if (name.endsWith(".pdf")) {
+    text = await extractPdfText(buffer);
+  } else if (name.endsWith(".docx")) {
+    text = await extractDocxText(buffer);
+  } else {
+    text = buffer.toString("utf-8");
+  }
+
+  return narrateText(text);
+}
+
+/** Extract events from a public portfolio or LinkedIn URL. */
+export async function importUrlAction(url: string): Promise<ReviewEvent[]> {
+  await requireSignedIn();
+  if (!url.trim()) return [];
+  const { fetchUrlText } = await import("@/lib/import");
+  const text = await fetchUrlText(url.trim());
+  return narrateText(text);
 }
 
 /** Bulk-insert events extracted from a narrative (newest get the top slots). */
